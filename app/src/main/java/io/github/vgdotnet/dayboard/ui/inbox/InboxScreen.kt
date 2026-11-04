@@ -34,7 +34,6 @@ import io.github.vgdotnet.dayboard.ui.components.BlinkDot
 import io.github.vgdotnet.dayboard.ui.components.Card
 import io.github.vgdotnet.dayboard.ui.components.Segmented
 import io.github.vgdotnet.dayboard.ui.components.SourceIcon
-import io.github.vgdotnet.dayboard.ui.components.rememberOpenUrl
 import io.github.vgdotnet.dayboard.ui.hhmm
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
 import io.github.vgdotnet.dayboard.ui.today.RecentUnreadLabel
@@ -50,8 +49,10 @@ private val weekdayFormat = DateTimeFormatter.ofPattern("EE", Locale.forLanguage
 fun InboxScreen(
     state: DashboardState,
     now: ZonedDateTime,
-    onMarkRead: (String) -> Unit,
+    onOpen: (InboxItem) -> Unit,
     onMarkAllRead: () -> Unit,
+    accessGranted: Boolean,
+    onGrantAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val c = DayBoard.colors
@@ -75,7 +76,20 @@ fun InboxScreen(
                 Text("Прочитать все", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.textSecondary)
             }
         }
-        InboxList(state, now, onMarkRead, showHeader = true, Modifier.weight(1f))
+        if (!accessGranted) AccessPrompt(onGrantAccess)
+        InboxList(state, now, onOpen, showHeader = true, Modifier.weight(1f))
+    }
+}
+
+/** Shown until the user grants notification access: without it the feed stays empty. */
+@Composable
+fun AccessPrompt(onGrantAccess: () -> Unit) {
+    val c = DayBoard.colors
+    Card(Modifier.fillMaxWidth(), border = c.highlightBorder, onClick = onGrantAccess) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Нужен доступ к уведомлениям", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.text)
+            Text("Письма Gmail и сообщения Slack берутся из уведомлений. Нажмите, чтобы разрешить доступ в настройках Android.", fontSize = 12.sp, color = c.textSecondary)
+        }
     }
 }
 
@@ -84,7 +98,7 @@ fun InboxScreen(
 fun InboxList(
     state: DashboardState,
     now: ZonedDateTime,
-    onMarkRead: (String) -> Unit,
+    onOpen: (InboxItem) -> Unit,
     showHeader: Boolean,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
@@ -115,10 +129,13 @@ fun InboxList(
                     }
                 }
             }
-            items(today, key = { it.id }) { item -> InboxRow(item, now, item.id in recent, compact, onMarkRead) }
+            if (shown.isEmpty()) {
+                item { Text("Пока ничего нет", fontSize = 13.sp, color = c.textSecondary, modifier = Modifier.padding(vertical = 12.dp)) }
+            }
+            items(today, key = { it.id }) { item -> InboxRow(item, now, item.id in recent, compact, onOpen) }
             if (earlier.isNotEmpty()) {
-                item { Text("Вчера", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = c.textSecondary, modifier = Modifier.padding(start = 2.dp, top = 8.dp)) }
-                items(earlier, key = { it.id }) { item -> InboxRow(item, now, false, compact, onMarkRead) }
+                item { Text("Раньше", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = c.textSecondary, modifier = Modifier.padding(start = 2.dp, top = 8.dp)) }
+                items(earlier, key = { it.id }) { item -> InboxRow(item, now, false, compact, onOpen) }
             }
             if (!compact) {
                 item {
@@ -136,11 +153,10 @@ fun InboxList(
 }
 
 @Composable
-private fun InboxRow(item: InboxItem, now: ZonedDateTime, isRecent: Boolean, compact: Boolean, onMarkRead: (String) -> Unit) {
+private fun InboxRow(item: InboxItem, now: ZonedDateTime, isRecent: Boolean, compact: Boolean, onOpen: (InboxItem) -> Unit) {
     val c = DayBoard.colors
-    val openUrl = rememberOpenUrl()
     val timeText = if (Duration.between(item.time, now).toHours() < 20 && item.time.withZoneSameInstant(now.zone).toLocalDate() == now.toLocalDate()) item.time.withZoneSameInstant(now.zone).hhmm() else item.time.withZoneSameInstant(now.zone).format(weekdayFormat)
-    Card(Modifier.fillMaxWidth(), onClick = { onMarkRead(item.id); openUrl(item.openUrl) }) {
+    Card(Modifier.fillMaxWidth(), onClick = { onOpen(item) }) {
         Row(
             Modifier.padding(horizontal = 14.dp, vertical = if (compact) 10.dp else 12.dp),
             verticalAlignment = if (compact) Alignment.CenterVertically else Alignment.Top,

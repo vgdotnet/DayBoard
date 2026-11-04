@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.vgdotnet.dayboard.R
+import io.github.vgdotnet.dayboard.notifications.NotificationInbox
 import io.github.vgdotnet.dayboard.ui.components.BlinkProvider
 import io.github.vgdotnet.dayboard.ui.components.NavDot
 import io.github.vgdotnet.dayboard.ui.inbox.InboxScreen
@@ -61,13 +64,17 @@ fun DayBoardApp(viewModel: DashboardViewModel = viewModel()) {
     var destination by rememberSaveable { mutableStateOf(Destination.Today) }
     val config = LocalConfiguration.current
     val tablet = config.screenWidthDp >= TABLET_MIN_WIDTH_DP && config.screenWidthDp > config.screenHeightDp
+    val context = LocalContext.current
+    // Re-read every tick (once a second): cheap, and picks up the grant when the user comes back from Android settings.
+    val accessGranted = remember(now) { NotificationInbox.isEnabled(context) }
+    val onGrantAccess = { NotificationInbox.openAccessSettings(context) }
 
     BlinkProvider(enabledInSettings = state.settings.blinkEnabled) {
         Box(Modifier.fillMaxSize().background(DayBoard.colors.background)) {
             if (tablet) {
-                TabletShell(state, now, destination, { destination = it }, viewModel)
+                TabletShell(state, now, destination, { destination = it }, viewModel, accessGranted, onGrantAccess)
             } else {
-                PhoneShell(state, now, destination, { destination = it }, viewModel)
+                PhoneShell(state, now, destination, { destination = it }, viewModel, accessGranted, onGrantAccess)
             }
         }
     }
@@ -80,14 +87,16 @@ private fun PhoneShell(
     destination: Destination,
     onNavigate: (Destination) -> Unit,
     viewModel: DashboardViewModel,
+    accessGranted: Boolean,
+    onGrantAccess: () -> Unit,
 ) {
     val c = DayBoard.colors
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
         Box(Modifier.weight(1f)) {
             when (destination) {
-                Destination.Today -> TodayScreen(state, now, viewModel::toggleTask, { onNavigate(Destination.Inbox) }, { onNavigate(Destination.Settings) }, viewModel::toggleWorkHours)
-                Destination.Inbox -> InboxScreen(state, now, viewModel::markRead, viewModel::markAllRead)
-                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone)
+                Destination.Today -> TodayScreen(state, now, viewModel::toggleTask, { onNavigate(Destination.Inbox) }, { onNavigate(Destination.Settings) }, viewModel::toggleWorkHours, accessGranted = accessGranted, onGrantAccess = onGrantAccess)
+                Destination.Inbox -> InboxScreen(state, now, viewModel::openItem, viewModel::markAllRead, accessGranted, onGrantAccess)
+                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, accessGranted, onGrantAccess)
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.cardInset))
@@ -118,6 +127,8 @@ private fun TabletShell(
     destination: Destination,
     onNavigate: (Destination) -> Unit,
     viewModel: DashboardViewModel,
+    accessGranted: Boolean,
+    onGrantAccess: () -> Unit,
 ) {
     val c = DayBoard.colors
     Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
@@ -147,8 +158,8 @@ private fun TabletShell(
         Box(Modifier.width(1.dp).fillMaxHeight().background(c.cardInset))
         Box(Modifier.weight(1f).fillMaxHeight()) {
             when (destination) {
-                Destination.Today, Destination.Inbox -> TabletTodayScreen(state, now, viewModel::toggleTask, viewModel::markRead, { viewModel.shiftDay(-1) }, { viewModel.shiftDay(1) }, viewModel::goToToday, viewModel::toggleWorkHours)
-                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, Modifier.width(520.dp))
+                Destination.Today, Destination.Inbox -> TabletTodayScreen(state, now, viewModel::toggleTask, viewModel::openItem, accessGranted, onGrantAccess, { viewModel.shiftDay(-1) }, { viewModel.shiftDay(1) }, viewModel::goToToday, viewModel::toggleWorkHours)
+                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, accessGranted, onGrantAccess, Modifier.width(520.dp))
             }
         }
     }

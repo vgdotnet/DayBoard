@@ -20,11 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.vgdotnet.dayboard.model.InboxItem
 import io.github.vgdotnet.dayboard.model.InboxSource
 import io.github.vgdotnet.dayboard.ui.DashboardState
 import io.github.vgdotnet.dayboard.ui.components.SectionHeader
 import io.github.vgdotnet.dayboard.ui.components.rememberOpenUrl
 import io.github.vgdotnet.dayboard.ui.hhmm
+import io.github.vgdotnet.dayboard.ui.inbox.AccessPrompt
 import io.github.vgdotnet.dayboard.ui.inbox.InboxList
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
 import io.github.vgdotnet.dayboard.ui.today.DayViewPanel
@@ -43,7 +45,9 @@ fun TabletTodayScreen(
     state: DashboardState,
     now: ZonedDateTime,
     onToggleTask: (String) -> Unit,
-    onMarkRead: (String) -> Unit,
+    onOpen: (InboxItem) -> Unit,
+    accessGranted: Boolean,
+    onGrantAccess: () -> Unit,
     onPrevDay: () -> Unit,
     onNextDay: () -> Unit,
     onToday: () -> Unit,
@@ -73,7 +77,8 @@ fun TabletTodayScreen(
             Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 WorkHoursCard(state.zones, state.home, now, state.settings.workHoursCollapsed, onToggleWorkHours, labelWidth = 80.dp, radius = 16.dp)
                 SectionHeader("Непрочитанное", titleSize = 16) { RecentUnreadLabel(state, now, ping = true) }
-                InboxList(state, now, onMarkRead, showHeader = false, Modifier.weight(1f), compact = true)
+                if (!accessGranted) AccessPrompt(onGrantAccess)
+                InboxList(state, now, onOpen, showHeader = false, Modifier.weight(1f), compact = true)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     InboxSource.entries.forEach { source ->
                         Box(

@@ -49,6 +49,8 @@ fun TodayScreen(
     onOpenSettings: () -> Unit,
     onToggleWorkHours: () -> Unit,
     modifier: Modifier = Modifier,
+    accessGranted: Boolean = true,
+    onGrantAccess: () -> Unit = {},
 ) {
     val c = DayBoard.colors
     Column(
@@ -79,6 +81,6 @@ fun TodayScreen(
         ZoneCards(state.zones, state.home, now)
         WorkHoursCard(state.zones, state.home, now, state.settings.workHoursCollapsed, onToggleWorkHours)
         AgendaSection(state.eventsOn(now.toLocalDate()), state.tasks, now, onToggleTask)
-        UnreadSection(state, now, onOpenInbox)
+        UnreadSection(state, now, onOpenInbox, accessGranted = accessGranted, onGrantAccess = onGrantAccess)
     }
 }

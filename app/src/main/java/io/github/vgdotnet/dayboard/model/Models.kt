@@ -67,9 +67,9 @@ data class TaskItem(
     val done: Boolean = false,
 )
 
-enum class InboxSource(val label: String, val openUrl: String) {
-    GMAIL("Gmail", "https://mail.google.com"),
-    SLACK("Slack", "https://slack.com"),
+enum class InboxSource(val label: String, val openUrl: String, val packageName: String) {
+    GMAIL("Gmail", "https://mail.google.com", "com.google.android.gm"),
+    SLACK("Slack", "https://slack.com", "com.Slack"),
 }
 
 data class InboxItem(

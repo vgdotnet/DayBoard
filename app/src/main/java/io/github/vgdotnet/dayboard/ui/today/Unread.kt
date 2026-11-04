@@ -20,6 +20,7 @@ import io.github.vgdotnet.dayboard.ui.components.Card
 import io.github.vgdotnet.dayboard.ui.components.CountBadge
 import io.github.vgdotnet.dayboard.ui.components.SectionHeader
 import io.github.vgdotnet.dayboard.ui.components.SourceIcon
+import io.github.vgdotnet.dayboard.ui.inbox.AccessPrompt
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
 import java.time.ZonedDateTime
 
@@ -46,11 +47,14 @@ fun UnreadSection(
     now: ZonedDateTime,
     onOpenInbox: () -> Unit,
     modifier: Modifier = Modifier,
+    accessGranted: Boolean = true,
+    onGrantAccess: () -> Unit = {},
 ) {
     val c = DayBoard.colors
     val recentSources = state.recentUnread(now).map { it.source }.toSet()
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionHeader("Непрочитанное") { RecentUnreadLabel(state, now) }
+        if (!accessGranted) AccessPrompt(onGrantAccess)
         InboxSource.entries.forEach { source ->
             val summary = state.unread(source)
             Card(Modifier.fillMaxWidth(), onClick = onOpenInbox) {

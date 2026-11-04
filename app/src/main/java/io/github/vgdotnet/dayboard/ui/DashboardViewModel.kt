@@ -13,6 +13,7 @@ import io.github.vgdotnet.dayboard.model.InboxSource
 import io.github.vgdotnet.dayboard.model.TaskItem
 import io.github.vgdotnet.dayboard.model.UnreadSummary
 import io.github.vgdotnet.dayboard.model.ZoneClock
+import io.github.vgdotnet.dayboard.notifications.NotificationInbox
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -87,8 +88,11 @@ class DashboardViewModel @JvmOverloads constructor(
             zones = zones,
             events = repository.events(start),
             tasks = repository.tasks(),
-            inbox = repository.inbox(start),
         )
+        NotificationInbox.init(application)
+        viewModelScope.launch {
+            NotificationInbox.items.collect { list -> _state.update { it.copy(inbox = list) } }
+        }
         viewModelScope.launch {
             val saved = store.load()
             _state.update { it.copy(zones = saved.zones ?: it.zones, settings = saved.settings) }
@@ -121,13 +125,12 @@ class DashboardViewModel @JvmOverloads constructor(
         s.copy(tasks = s.tasks.map { if (it.id == id) it.copy(done = !it.done) else it })
     }
 
-    fun markRead(id: String) = _state.update { s ->
-        s.copy(inbox = s.inbox.map { if (it.id == id) it.copy(unread = false) else it })
-    }
+    fun markRead(id: String) = NotificationInbox.markRead(id)
 
-    fun markAllRead() = _state.update { s ->
-        s.copy(inbox = s.inbox.map { it.copy(unread = false) })
-    }
+    fun markAllRead() = NotificationInbox.markAllRead()
+
+    /** Opens the message in Gmail or Slack and marks it read. */
+    fun openItem(item: InboxItem) = NotificationInbox.open(getApplication(), item)
 
     fun shiftDay(delta: Long) = _state.update { s ->
         s.copy(selectedDate = s.dateShown(_now.value).plusDays(delta))

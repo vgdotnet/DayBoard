@@ -51,6 +51,8 @@ fun SettingsScreen(
     onAddZone: (City) -> Unit,
     onRemoveZone: (String) -> Unit,
     onMoveZone: (Int, Int) -> Unit,
+    accessGranted: Boolean,
+    onGrantAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val c = DayBoard.colors
@@ -71,12 +73,25 @@ fun SettingsScreen(
             ZoneList(zones, now, onMove = onMoveZone, onRemove = onRemoveZone, onAdd = { addingCity = true })
         }
 
-        Group("Аккаунты") {
-            AccountRow("Google", "Календарь, Задачи, Gmail", "не подключён")
+        Group("Источники") {
+            Row(
+                Modifier.fillMaxWidth().clickable(onClick = onGrantAccess).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Gmail и Slack", fontSize = 15.sp, color = c.text)
+                    Text("из уведомлений на этом устройстве", fontSize = 12.sp, color = c.textSecondary)
+                }
+                Text(
+                    if (accessGranted) "доступ есть" else "дать доступ",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (accessGranted) c.success else c.accentText,
+                )
+            }
             Divider()
-            AccountRow("Slack", "рабочее пространство", "не подключён")
-            Divider()
-            AddRow("Добавить аккаунт")
+            AccountRow("Google Календарь", "события из календаря устройства", "не подключён")
         }
 
         Group("Уведомления") {
