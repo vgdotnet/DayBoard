@@ -220,8 +220,6 @@ class DashboardViewModel @JvmOverloads constructor(
         s.copy(tasks = s.tasks.map { if (it.id == id) it.copy(done = !it.done) else it })
     }
 
-    fun markRead(id: String) = NotificationInbox.markRead(id)
-
     fun markAllRead() = NotificationInbox.markAllRead()
 
     /** Opens the message in Gmail or Slack and marks it read. */

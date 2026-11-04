@@ -16,8 +16,15 @@ import java.time.ZonedDateTime
 class NotificationCatcher : NotificationListenerService() {
 
     override fun onListenerConnected() {
+        instance = this
         NotificationInbox.init(this)
-        runCatching { activeNotifications }.getOrNull()?.forEach { handle(it) }
+        val active = runCatching { activeNotifications }.getOrNull().orEmpty()
+        active.forEach { handle(it) }
+        NotificationInbox.retainOnly(active.filter { sourceOf(it.packageName) != null }.map { it.key }.toSet())
+    }
+
+    override fun onListenerDisconnected() {
+        if (instance === this) instance = null
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -27,7 +34,7 @@ class NotificationCatcher : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         NotificationInbox.init(this)
-        if (sourceOf(sbn.packageName) != null) NotificationInbox.markRead(sbn.key)
+        if (sourceOf(sbn.packageName) != null) NotificationInbox.remove(sbn.key)
     }
 
     private fun handle(sbn: StatusBarNotification) {
@@ -36,6 +43,11 @@ class NotificationCatcher : NotificationListenerService() {
     }
 
     companion object {
+        /** The bound service, for cancelling notifications from the UI; null while not connected. */
+        @Volatile
+        var instance: NotificationCatcher? = null
+            private set
+
         private const val PREVIEW_MAX = 160
 
         fun sourceOf(packageName: String): InboxSource? = InboxSource.entries.firstOrNull { it.packageName == packageName }

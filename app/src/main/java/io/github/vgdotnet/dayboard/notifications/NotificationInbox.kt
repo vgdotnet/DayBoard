@@ -21,9 +21,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The unread feed built from Gmail and Slack notifications. Shared between the listener service
- * and the UI; items are kept in a JSON file so they survive a restart, the content intents only
- * in memory (opening falls back to launching the app when the intent is gone).
+ * The unread feed: exactly the Gmail and Slack notifications currently in the shade. A removed
+ * notification (the mail was read, deleted or swiped away) drops its row; on every reconnect the
+ * feed is reconciled with the active notifications. Shared between the listener service and the
+ * UI; items are cached in a JSON file for a quick start, the content intents only in memory
+ * (opening falls back to launching the app when the intent is gone).
  */
 object NotificationInbox {
     private const val TAG = "NotificationInbox"
@@ -59,19 +61,33 @@ object NotificationInbox {
         save()
     }
 
+    /** The notification is gone from the shade: the row goes too. */
     @Synchronized
-    fun markRead(id: String) {
-        var changed = false
-        _items.update { list ->
-            list.map { if (it.id == id && it.unread) { changed = true; it.copy(unread = false) } else it }
-        }
-        if (changed) save()
+    fun remove(id: String) {
+        if (_items.value.none { it.id == id }) return
+        intents.remove(id)
+        _items.update { list -> list.filterNot { it.id == id } }
+        save()
     }
 
+    /** Keeps only the rows whose notifications are still active. */
     @Synchronized
-    fun markAllRead() {
-        _items.update { list -> list.map { it.copy(unread = false) } }
+    fun retainOnly(activeIds: Set<String>) {
+        if (_items.value.all { it.id in activeIds }) return
+        intents.keys.retainAll(activeIds)
+        _items.update { list -> list.filter { it.id in activeIds } }
         save()
+    }
+
+    /** Dismisses the Gmail and Slack notifications; the listener's removal callbacks then empty the feed. */
+    fun markAllRead() {
+        val keys = _items.value.map { it.id }
+        val service = NotificationCatcher.instance
+        if (service != null && keys.isNotEmpty()) {
+            runCatching { service.cancelNotifications(keys.toTypedArray()) }
+        } else {
+            retainOnly(emptySet())
+        }
     }
 
     /**
@@ -80,7 +96,6 @@ object NotificationInbox {
      * otherwise the launch is dropped without an error.
      */
     fun open(context: Context, item: InboxItem) {
-        markRead(item.id)
         val intent = intents[item.id]
         val sent = intent?.let {
             runCatching {
