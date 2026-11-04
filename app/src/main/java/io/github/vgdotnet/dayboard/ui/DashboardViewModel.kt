@@ -171,11 +171,18 @@ class DashboardViewModel @JvmOverloads constructor(
         if (seen.isNotEmpty() && !known.containsAll(seen)) updateSettings { it.copy(gmailAccounts = known + seen) }
     }
 
-    /** Reads the unread count from the Gmail provider off the main thread. */
+    private var gmailJob: Job? = null
+
+    /**
+     * Reads the unread count from the Gmail provider off the main thread. Gmail's observer fires
+     * once per changed row, so a burst of calls is coalesced into one query.
+     */
     fun refreshGmailCount() {
-        val settings = _state.value.settings
-        val granted = gmail.hasPermission
-        viewModelScope.launch(Dispatchers.IO) {
+        gmailJob?.cancel()
+        gmailJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(400)
+            val settings = _state.value.settings
+            val granted = gmail.hasPermission
             val count = if (granted) gmail.unread(settings.gmailAccounts, settings.gmailImportantOnly) else null
             _state.update { it.copy(gmailUnread = count, gmailGranted = granted) }
         }
