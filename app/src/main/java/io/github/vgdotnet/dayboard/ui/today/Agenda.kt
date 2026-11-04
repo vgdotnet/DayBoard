@@ -1,6 +1,9 @@
 package io.github.vgdotnet.dayboard.ui.today
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +26,7 @@ import io.github.vgdotnet.dayboard.model.CalendarEvent
 import io.github.vgdotnet.dayboard.model.TaskItem
 import io.github.vgdotnet.dayboard.ui.components.Card
 import io.github.vgdotnet.dayboard.ui.components.SectionHeader
-import io.github.vgdotnet.dayboard.ui.components.rememberOpenUrl
+import io.github.vgdotnet.dayboard.ui.components.rememberOpenEvent
 import io.github.vgdotnet.dayboard.ui.formatMinutesUntil
 import io.github.vgdotnet.dayboard.ui.hhmm
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
@@ -37,17 +40,32 @@ fun AgendaSection(
     now: ZonedDateTime,
     onToggleTask: (String) -> Unit,
     modifier: Modifier = Modifier,
+    calendarGranted: Boolean = true,
+    onGrantCalendar: () -> Unit = {},
 ) {
     val c = DayBoard.colors
-    val openUrl = rememberOpenUrl()
-    val upcoming = events.filter { it.isUpcoming(now) }.sortedBy { it.start }
+    val openEvent = rememberOpenEvent()
+    val upcoming = events.filter { !it.allDay && it.isUpcoming(now) }.sortedBy { it.start }
+    val allDay = events.filter { it.allDay }
     val next = upcoming.firstOrNull()
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionHeader("Сегодня") {
             Text("Google Календарь", fontSize = 12.sp, color = c.textSecondary)
         }
+        if (!calendarGranted) CalendarPrompt(onGrantCalendar)
+        allDay.forEach { event ->
+            Row(
+                Modifier.fillMaxWidth().clickable { openEvent(event) }.padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(Modifier.width(48.dp)) { Box(Modifier.size(10.dp).background(Color(event.color), CircleShape)) }
+                Text(event.title, fontSize = 15.sp, color = c.text, modifier = Modifier.weight(1f), maxLines = 1)
+                Text("весь день", fontSize = 12.sp, color = c.textSecondary)
+            }
+        }
         if (next != null) {
-            Card(Modifier.fillMaxWidth(), border = c.highlightBorder, onClick = { openUrl(next.meetUrl ?: next.openUrl) }) {
+            Card(Modifier.fillMaxWidth(), border = c.highlightBorder, onClick = { openEvent(next) }) {
                 Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(next.start.withZoneSameInstant(now.zone).hhmm(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.accentText, modifier = Modifier.width(48.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -62,7 +80,7 @@ fun AgendaSection(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clickable { openUrl(event.openUrl) }
+                    .clickable { openEvent(event) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -71,7 +89,7 @@ fun AgendaSection(
                 Text(event.title, fontSize = 15.sp, color = c.text, modifier = Modifier.weight(1f))
             }
         }
-        if (upcoming.isEmpty()) {
+        if (upcoming.isEmpty() && calendarGranted) {
             Text("Событий больше нет", fontSize = 13.sp, color = c.textSecondary, modifier = Modifier.padding(horizontal = 14.dp))
         }
         tasks.forEach { task ->

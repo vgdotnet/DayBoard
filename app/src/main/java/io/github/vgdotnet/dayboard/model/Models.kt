@@ -51,9 +51,13 @@ data class CalendarEvent(
     val title: String,
     val start: ZonedDateTime,
     val end: ZonedDateTime,
-    val tint: EventTint,
+    /** ARGB colour of the block: the calendar's colour on the device. */
+    val color: Long,
+    val allDay: Boolean = false,
     val meetUrl: String? = null,
+    /** content:// uri of the event for Google Calendar, or a web link. */
     val openUrl: String = "https://calendar.google.com",
+    val calendarName: String = "",
     /** Zone of the other party, shown as "16:30 в Лондоне" under the event. */
     val counterpartZoneId: String? = null,
 ) {

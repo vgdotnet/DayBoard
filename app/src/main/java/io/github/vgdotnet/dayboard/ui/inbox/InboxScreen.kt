@@ -32,6 +32,7 @@ import io.github.vgdotnet.dayboard.model.InboxSource
 import io.github.vgdotnet.dayboard.ui.DashboardState
 import io.github.vgdotnet.dayboard.ui.components.BlinkDot
 import io.github.vgdotnet.dayboard.ui.components.Card
+import io.github.vgdotnet.dayboard.ui.components.PromptCard
 import io.github.vgdotnet.dayboard.ui.components.Segmented
 import io.github.vgdotnet.dayboard.ui.components.SourceIcon
 import io.github.vgdotnet.dayboard.ui.hhmm
@@ -83,15 +84,11 @@ fun InboxScreen(
 
 /** Shown until the user grants notification access: without it the feed stays empty. */
 @Composable
-fun AccessPrompt(onGrantAccess: () -> Unit) {
-    val c = DayBoard.colors
-    Card(Modifier.fillMaxWidth(), border = c.highlightBorder, onClick = onGrantAccess) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Нужен доступ к уведомлениям", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.text)
-            Text("Письма Gmail и сообщения Slack берутся из уведомлений. Нажмите, чтобы разрешить доступ в настройках Android.", fontSize = 12.sp, color = c.textSecondary)
-        }
-    }
-}
+fun AccessPrompt(onGrantAccess: () -> Unit) = PromptCard(
+    "Нужен доступ к уведомлениям",
+    "Письма Gmail и сообщения Slack берутся из уведомлений. Нажмите, чтобы разрешить доступ в настройках Android.",
+    onGrantAccess,
+)
 
 /** The shared list: filter segments, day groups, items. Used on the phone and as the tablet column. */
 @Composable

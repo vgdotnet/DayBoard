@@ -43,7 +43,8 @@ import io.github.vgdotnet.dayboard.R
 import io.github.vgdotnet.dayboard.model.CalendarEvent
 import io.github.vgdotnet.dayboard.model.TaskItem
 import io.github.vgdotnet.dayboard.model.ZoneClock
-import io.github.vgdotnet.dayboard.ui.components.rememberOpenUrl
+import io.github.vgdotnet.dayboard.ui.components.PromptCard
+import io.github.vgdotnet.dayboard.ui.components.rememberOpenEvent
 import io.github.vgdotnet.dayboard.ui.formatMinutesUntil
 import io.github.vgdotnet.dayboard.ui.hhmm
 import io.github.vgdotnet.dayboard.ui.hhmmIn
@@ -68,9 +69,12 @@ fun DayViewPanel(
     onToday: () -> Unit,
     modifier: Modifier = Modifier,
     showTasks: Boolean = true,
+    calendarGranted: Boolean = true,
+    onGrantCalendar: () -> Unit = {},
 ) {
     val c = DayBoard.colors
     val isToday = date == now.toLocalDate()
+    val openEvent = rememberOpenEvent()
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(date.dateLine(), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = c.text)
@@ -107,7 +111,27 @@ fun DayViewPanel(
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.cardInset))
         }
 
-        HourGrid(events, zones, now, date, Modifier.weight(1f).fillMaxWidth().padding(bottom = 8.dp))
+        if (!calendarGranted) CalendarPrompt(onGrantCalendar)
+        val allDay = events.filter { it.allDay }
+        if (allDay.isNotEmpty()) {
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                allDay.forEach { event ->
+                    Text(
+                        event.title,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = c.onEvent,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(event.color))
+                            .clickable { openEvent(event) }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    )
+                }
+            }
+        }
+        HourGrid(events.filter { !it.allDay }, zones, now, date, Modifier.weight(1f).fillMaxWidth().padding(bottom = 8.dp))
     }
 }
 
@@ -173,7 +197,7 @@ private fun HourGrid(
     hourHeight: Dp = 56.dp,
 ) {
     val c = DayBoard.colors
-    val openUrl = rememberOpenUrl()
+    val openEvent = rememberOpenEvent()
     val gutter = 48.dp
     val isToday = date == now.toLocalDate()
     val dayStart = date.atStartOfDay(now.zone)
@@ -224,15 +248,23 @@ private fun HourGrid(
                     Modifier
                         .offset(x = gutter + 4.dp, y = top + 1.dp)
                         .width(width - gutter - 8.dp)
-                        .height(bottom - top - 2.dp)
+                        .height(maxOf(bottom - top - 2.dp, MIN_BLOCK_HEIGHT))
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color(event.tint.argb))
-                        .clickable { openUrl(event.meetUrl ?: event.openUrl) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                        .background(Color(event.color))
+                        .clickable { openEvent(event) }
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
                     verticalArrangement = Arrangement.spacedBy(1.dp),
                 ) {
-                    Text(event.title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, lineHeight = 16.sp, color = c.onEvent, maxLines = 1)
-                    Text(details, fontSize = 11.sp, lineHeight = 14.sp, color = c.onEvent.copy(alpha = 0.9f), maxLines = 1)
+                    val short = (bottom - top) < 40.dp
+                    Text(
+                        if (short) "${event.title} · $details" else event.title,
+                        fontSize = if (short) 11.sp else 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = if (short) 14.sp else 16.sp,
+                        color = c.onEvent,
+                        maxLines = 1,
+                    )
+                    if (!short) Text(details, fontSize = 11.sp, lineHeight = 14.sp, color = c.onEvent.copy(alpha = 0.9f), maxLines = 1)
                 }
             }
 
@@ -244,6 +276,16 @@ private fun HourGrid(
         }
     }
 }
+
+/** Short events (a 15-minute reminder) still get one readable line. */
+private val MIN_BLOCK_HEIGHT = 22.dp
+
+@Composable
+fun CalendarPrompt(onGrantCalendar: () -> Unit) = PromptCard(
+    "Нужен доступ к календарю",
+    "События берутся из календаря устройства, который синхронизирует Google Календарь. Нажмите, чтобы разрешить чтение.",
+    onGrantCalendar,
+)
 
 /** "в Лондоне", "в Москве": the prepositional case for the zones in the test data. */
 private fun inZoneName(zone: ZoneClock): String = when (zone.id) {

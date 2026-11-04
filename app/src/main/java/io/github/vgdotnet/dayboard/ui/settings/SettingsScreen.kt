@@ -53,6 +53,8 @@ fun SettingsScreen(
     onMoveZone: (Int, Int) -> Unit,
     accessGranted: Boolean,
     onGrantAccess: () -> Unit,
+    calendarGranted: Boolean,
+    onGrantCalendar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val c = DayBoard.colors
@@ -91,7 +93,22 @@ fun SettingsScreen(
                 )
             }
             Divider()
-            AccountRow("Google Календарь", "события из календаря устройства", "не подключён")
+            Row(
+                Modifier.fillMaxWidth().clickable(onClick = onGrantCalendar).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Календарь", fontSize = 15.sp, color = c.text)
+                    Text("события из календаря устройства (Google Календарь)", fontSize = 12.sp, color = c.textSecondary)
+                }
+                Text(
+                    if (calendarGranted) "доступ есть" else "дать доступ",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (calendarGranted) c.success else c.accentText,
+                )
+            }
         }
 
         Group("Уведомления") {

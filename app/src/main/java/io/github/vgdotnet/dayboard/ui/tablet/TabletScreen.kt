@@ -52,6 +52,7 @@ fun TabletTodayScreen(
     onNextDay: () -> Unit,
     onToday: () -> Unit,
     onToggleWorkHours: () -> Unit,
+    onGrantCalendar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val date = state.dateShown(now)
@@ -72,7 +73,7 @@ fun TabletTodayScreen(
         }
 
         Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
-            DayViewPanel(state.eventsOn(date), state.tasks, state.zones, now, date, onToggleTask, onPrevDay, onNextDay, onToday, Modifier.weight(1f).fillMaxHeight(), showTasks = false)
+            DayViewPanel(state.eventsOn(date), state.tasks, state.zones, now, date, onToggleTask, onPrevDay, onNextDay, onToday, Modifier.weight(1f).fillMaxHeight(), showTasks = false, calendarGranted = state.calendarGranted, onGrantCalendar = onGrantCalendar)
 
             Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 WorkHoursCard(state.zones, state.home, now, state.settings.workHoursCollapsed, onToggleWorkHours, labelWidth = 80.dp, radius = 16.dp)

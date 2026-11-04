@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vgdotnet.dayboard.data.DashboardRepository
+import io.github.vgdotnet.dayboard.data.DeviceCalendar
 import io.github.vgdotnet.dayboard.data.FakeDashboardRepository
 import io.github.vgdotnet.dayboard.data.SettingsStore
 import io.github.vgdotnet.dayboard.model.AppSettings
@@ -18,6 +19,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +36,8 @@ data class DashboardState(
     val settings: AppSettings = AppSettings(),
     /** Day shown in the calendar; null means today. */
     val selectedDate: LocalDate? = null,
+    /** READ_CALENDAR granted; without it the agenda shows a prompt instead of events. */
+    val calendarGranted: Boolean = false,
 ) {
     fun dateShown(now: ZonedDateTime): LocalDate = selectedDate ?: now.toLocalDate()
 
@@ -44,7 +48,7 @@ data class DashboardState(
     val home: ZoneClock get() = zones.first()
 
     fun nextEvent(now: ZonedDateTime): CalendarEvent? =
-        events.filter { it.isUpcoming(now) }.minByOrNull { it.start }
+        events.filter { !it.allDay && it.isUpcoming(now) }.minByOrNull { it.start }
 
     fun unread(source: InboxSource): UnreadSummary {
         val items = inbox.filter { it.source == source && it.unread }.sortedByDescending { it.time }
@@ -73,6 +77,8 @@ class DashboardViewModel @JvmOverloads constructor(
 ) : AndroidViewModel(application) {
 
     private val store = SettingsStore(application)
+    private val calendar = DeviceCalendar(application)
+    private var stopObserving: (() -> Unit)? = null
 
     private val _state = MutableStateFlow(DashboardState())
     val state: StateFlow<DashboardState> = _state.asStateFlow()
@@ -86,9 +92,11 @@ class DashboardViewModel @JvmOverloads constructor(
         _now.value = start
         _state.value = DashboardState(
             zones = zones,
-            events = repository.events(start),
             tasks = repository.tasks(),
+            calendarGranted = calendar.hasPermission,
         )
+        refreshEvents()
+        startObserving()
         NotificationInbox.init(application)
         viewModelScope.launch {
             NotificationInbox.items.collect { list -> _state.update { it.copy(inbox = list) } }
@@ -104,6 +112,39 @@ class DashboardViewModel @JvmOverloads constructor(
                 _now.value = ZonedDateTime.now(_state.value.home.zone)
             }
         }
+    }
+
+    /** Loads the events around the shown day from the device calendar, off the main thread. */
+    fun refreshEvents() {
+        val s = _state.value
+        if (!calendar.hasPermission) {
+            if (s.calendarGranted || s.events.isNotEmpty()) _state.update { it.copy(calendarGranted = false, events = emptyList()) }
+            return
+        }
+        val zone = s.home.zone
+        val date = s.dateShown(_now.value)
+        viewModelScope.launch(Dispatchers.IO) {
+            val from = date.minusDays(1).atStartOfDay(zone).toInstant()
+            val to = date.plusDays(8).atStartOfDay(zone).toInstant()
+            val events = calendar.events(from, to, zone)
+            _state.update { it.copy(events = events, calendarGranted = true) }
+        }
+    }
+
+    /** Called after the permission dialog; a grant loads the events right away. */
+    fun calendarPermissionChanged() {
+        refreshEvents()
+        startObserving()
+    }
+
+    /** Registering an observer on the calendar provider needs the permission too, so only once granted. */
+    private fun startObserving() {
+        if (stopObserving != null || !calendar.hasPermission) return
+        stopObserving = runCatching { calendar.observe { refreshEvents() } }.getOrNull()
+    }
+
+    override fun onCleared() {
+        stopObserving?.invoke()
     }
 
     /** Set once the saved zones and settings are in; until then nothing is written back. */
@@ -132,11 +173,15 @@ class DashboardViewModel @JvmOverloads constructor(
     /** Opens the message in Gmail or Slack and marks it read. */
     fun openItem(item: InboxItem) = NotificationInbox.open(getApplication(), item)
 
-    fun shiftDay(delta: Long) = _state.update { s ->
-        s.copy(selectedDate = s.dateShown(_now.value).plusDays(delta))
+    fun shiftDay(delta: Long) {
+        _state.update { s -> s.copy(selectedDate = s.dateShown(_now.value).plusDays(delta)) }
+        refreshEvents()
     }
 
-    fun goToToday() = _state.update { it.copy(selectedDate = null) }
+    fun goToToday() {
+        _state.update { it.copy(selectedDate = null) }
+        refreshEvents()
+    }
 
     fun addZone(zone: ZoneClock) {
         _state.update { s -> if (s.zones.any { it.id == zone.id }) s else s.copy(zones = s.zones + zone) }
@@ -154,6 +199,7 @@ class DashboardViewModel @JvmOverloads constructor(
             else s.copy(zones = s.zones.toMutableList().apply { add(to, removeAt(from)) })
         }
         persist()
+        if (from == 0 || to == 0) refreshEvents()
     }
 
     fun toggleWorkHours() = updateSettings { it.copy(workHoursCollapsed = !it.workHoursCollapsed) }

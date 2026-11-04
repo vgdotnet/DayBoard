@@ -1,12 +1,14 @@
 package io.github.vgdotnet.dayboard.ui.components
 
 import android.content.Intent
+import android.provider.CalendarContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import io.github.vgdotnet.dayboard.R
+import io.github.vgdotnet.dayboard.model.CalendarEvent
 import io.github.vgdotnet.dayboard.model.InboxSource
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
 
@@ -75,7 +78,7 @@ fun SourceIcon(source: InboxSource, boxSize: Dp = 40.dp, iconSize: Dp = 20.dp, r
 fun SectionHeader(title: String, titleSize: Int = 15, trailing: @Composable () -> Unit = {}) {
     Row(
         Modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, fontSize = titleSize.sp, fontWeight = FontWeight.SemiBold, color = DayBoard.colors.text)
@@ -93,7 +96,7 @@ fun Segmented(options: List<String>, selected: Int, height: Dp = 36.dp, onSelect
             .background(c.card, RoundedCornerShape(12.dp))
             .border(1.dp, c.cardBorder, RoundedCornerShape(12.dp))
             .padding(4.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         options.forEachIndexed { i, label ->
             val isSelected = i == selected
@@ -120,5 +123,33 @@ fun Segmented(options: List<String>, selected: Int, height: Dp = 36.dp, onSelect
 @Composable
 fun rememberOpenUrl(): (String) -> Unit {
     val context = LocalContext.current
-    return { url -> context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+    return { url -> runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) } }
+}
+
+/** Opens the Meet link when there is one, otherwise the event in the calendar app at its instance time. */
+@Composable
+fun rememberOpenEvent(): (CalendarEvent) -> Unit {
+    val context = LocalContext.current
+    return { event ->
+        val intent = if (event.meetUrl != null) {
+            Intent(Intent.ACTION_VIEW, event.meetUrl.toUri())
+        } else {
+            Intent(Intent.ACTION_VIEW, event.openUrl.toUri())
+                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.start.toInstant().toEpochMilli())
+                .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.end.toInstant().toEpochMilli())
+        }
+        runCatching { context.startActivity(intent) }
+    }
+}
+
+/** Card asking for a permission or access; tapping it starts the request. */
+@Composable
+fun PromptCard(title: String, text: String, onClick: () -> Unit) {
+    val c = DayBoard.colors
+    Card(Modifier.fillMaxWidth(), border = c.highlightBorder, onClick = onClick) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.text)
+            Text(text, fontSize = 12.sp, color = c.textSecondary)
+        }
+    }
 }
