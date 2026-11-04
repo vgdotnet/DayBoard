@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Планшет, альбомная</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#F2F3F5;background:#111318}
+a{color:#F2F3F5;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer}
+input[type=checkbox]{width:20px;height:20px;margin:0;accent-color:#F5B544}
+input[type=checkbox].tk{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:2px solid #4285F4;border-radius:9px;background:transparent;flex-shrink:0;cursor:pointer}
+input[type=checkbox].tk:checked{background:#4285F4}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+.blink{animation:blink 1.2s ease-in-out infinite}
+.ping{position:absolute;inset:0;border-radius:50%;border:2px solid #F5B544;animation:ping 1.6s ease-out infinite}
+@media (prefers-reduced-motion: reduce){.blink,.ping{animation:none}.ping{display:none}}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; background: #111318; display: flex; font-family: Inter, system-ui, sans-serif; color: #F2F3F5">
+
+  <nav style="width: 96px; box-sizing: border-box; border-right: 1px solid #262A33; padding: 28px 0; display: flex; flex-direction: column; align-items: center; gap: 8px">
+    <a href="Tablet.dc.html" style="width: 72px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border-radius: 16px; background: #1A1D24; color: #F5B544; font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5B544" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Сегодня</a>
+    <a href="Inbox.dc.html" style="width: 72px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border-radius: 16px; color: #9AA0AB; font-size: 11px; font-weight: 500"><span style="position: relative; display: block; width: 24px; height: 24px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><path d="M3 13h5l2 3h4l2-3h5"></path><path d="M5 5h14l2 8v6H3v-6z"></path></svg><span class="blink" style="position: absolute; top: -2px; right: -4px; width: 10px; height: 10px; border-radius: 5px; background: #F5B544; border: 2px solid #111318; display: block"></span></span>Входящие</a>
+    <a href="Settings.dc.html" style="width: 72px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border-radius: 16px; color: #9AA0AB; font-size: 11px; font-weight: 500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path><circle cx="9" cy="7" r="2" fill="#111318"></circle><circle cx="15" cy="12" r="2" fill="#111318"></circle><circle cx="8" cy="17" r="2" fill="#111318"></circle></svg>Настройки</a>
+  </nav>
+
+  <div style="flex: 1; min-width: 0; box-sizing: border-box; padding: 32px 36px; display: flex; flex-direction: column; gap: 24px">
+
+    <div style="display: flex; gap: 24px; align-items: stretch">
+      <div style="width: 300px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px">
+        <div style="font-size: 14px; color: #9AA0AB; font-weight: 500">Среда, 22 октября · Гранада</div>
+        <div style="font-size: 88px; font-weight: 600; letter-spacing: -3px; line-height: 1">14:32</div>
+        <div style="font-size: 14px; color: #9AA0AB">UTC+2 · закат 19:24</div>
+      </div>
+
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <div style="background: #1A1D24; border-radius: 16px; padding: 14px 18px; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 13px; color: #9AA0AB; font-weight: 500">Москва</div>
+            <div style="font-size: 32px; font-weight: 600; letter-spacing: -1px; line-height: 1.1">15:32</div>
+            <div style="font-size: 13px; color: #F5B544; font-weight: 500">+1 ч · работает</div>
+          </div>
+          <div style="background: #1A1D24; border-radius: 16px; padding: 14px 18px; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 13px; color: #9AA0AB; font-weight: 500">Новосибирск</div>
+            <div style="font-size: 32px; font-weight: 600; letter-spacing: -1px; line-height: 1.1">19:32</div>
+            <div style="font-size: 13px; color: #9AA0AB; font-weight: 500">+5 ч · вечер</div>
+          </div>
+          <div style="background: #1A1D24; border-radius: 16px; padding: 14px 18px; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 13px; color: #9AA0AB; font-weight: 500">Лондон</div>
+            <div style="font-size: 32px; font-weight: 600; letter-spacing: -1px; line-height: 1.1">13:32</div>
+            <div style="font-size: 13px; color: #F5B544; font-weight: 500">−1 ч · работает</div>
+          </div>
+        </div>
+
+        <div style="background: #1A1D24; border-radius: 16px; padding: 12px 18px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA0AB; font-weight: 500"><span>Рабочие часы 9–18 по местному времени</span><span>сейчас</span></div>
+          <div style="position: relative; display: flex; flex-direction: column; gap: 6px">
+            <div style="position: absolute; left: calc(96px + (100% - 96px) * 0.605); top: -2px; bottom: -2px; width: 2px; background: #F5B544; border-radius: 1px"></div>
+            <div style="display: flex; align-items: center; gap: 8px"><span style="width: 88px; font-size: 11px; color: #9AA0AB">Гранада</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 37.5%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+            <div style="display: flex; align-items: center; gap: 8px"><span style="width: 88px; font-size: 11px; color: #9AA0AB">Москва</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 33.3%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+            <div style="display: flex; align-items: center; gap: 8px"><span style="width: 88px; font-size: 11px; color: #9AA0AB">Новосибирск</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 16.7%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+            <div style="display: flex; align-items: center; gap: 8px"><span style="width: 88px; font-size: 11px; color: #9AA0AB">Лондон</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 41.7%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-size: 16px; font-weight: 600">Среда, 22 октября</div>
+          <div style="display: flex; gap: 4px">
+            <button type="button" aria-label="Предыдущий день" style="width: 28px; height: 28px; border: 0; border-radius: 14px; background: #1A1D24; color: #9AA0AB; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="2" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg></button>
+            <button type="button" aria-label="Следующий день" style="width: 28px; height: 28px; border: 0; border-radius: 14px; background: #1A1D24; color: #9AA0AB; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-start; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #262A33">
+          <div style="width: 48px; flex-shrink: 0; font-size: 11px; color: #9AA0AB; padding-top: 6px">Задачи</div>
+          <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 6px">
+            <label style="display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 8px; border-radius: 6px; background: #1A1D24; font-size: 13px; cursor: pointer"><input type="checkbox" class="tk">Ответить агентству по договору</label>
+            <label style="display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 8px; border-radius: 6px; background: #1A1D24; font-size: 13px; cursor: pointer"><input type="checkbox" class="tk">Урок английского, глава 7</label>
+          </div>
+        </div>
+
+        <div style="position: relative; flex: 1; min-height: 0; margin-bottom: 8px">
+          <div style="position: absolute; left: 0; right: 0; top: 0%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">14:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 14.2857%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">15:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 28.5714%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">16:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 42.8571%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">17:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 57.1429%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">18:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 71.4286%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">19:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 85.7143%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">20:00</span></div>
+          <div style="position: absolute; left: 0; right: 0; top: 100%; height: 0; border-top: 1px solid #262A33"><span style="position: absolute; left: 0; top: -7px; width: 40px; text-align: right; font-size: 11px; color: #9AA0AB">21:00</span></div>
+          <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 48px; border-right: 1px solid #262A33"></div>
+
+          <a href="https://meet.google.com" style="position: absolute; left: 52px; right: 4px; top: calc(14.2857% + 1px); height: calc(10.7143% - 2px); box-sizing: border-box; border-radius: 6px; background: #039BE5; color: #FFFFFF; padding: 4px 8px; display: flex; flex-direction: column; gap: 1px; overflow: hidden">
+            <div style="font-size: 13px; font-weight: 600; line-height: 16px">Стендап команды</div>
+            <div style="font-size: 11px; line-height: 14px; opacity: 0.9">15:00 - 15:45 · Google Meet · через 28 мин</div>
+          </a>
+          <a href="https://calendar.google.com" style="position: absolute; left: 52px; right: 4px; top: calc(50% + 1px); height: calc(14.2857% - 2px); box-sizing: border-box; border-radius: 6px; background: #3F51B5; color: #FFFFFF; padding: 4px 8px; display: flex; flex-direction: column; gap: 1px; overflow: hidden">
+            <div style="font-size: 13px; font-weight: 600; line-height: 16px">Созвон с клиентом</div>
+            <div style="font-size: 11px; line-height: 14px; opacity: 0.9">17:30 - 18:30 · 16:30 в Лондоне</div>
+          </a>
+          <a href="https://calendar.google.com" style="position: absolute; left: 52px; right: 4px; top: calc(85.7143% + 1px); height: calc(14.2857% - 2px); box-sizing: border-box; border-radius: 6px; background: #33B679; color: #FFFFFF; padding: 4px 8px; display: flex; flex-direction: column; gap: 1px; overflow: hidden">
+            <div style="font-size: 13px; font-weight: 600; line-height: 16px">Английский, Azar глава 7</div>
+            <div style="font-size: 11px; line-height: 14px; opacity: 0.9">20:00 - 21:00</div>
+          </a>
+
+          <div style="position: absolute; left: 42px; right: 0; top: calc(7.619% - 1px); height: 2px; background: #EA4335"></div>
+          <div style="position: absolute; left: 36px; top: calc(7.619% - 6px); width: 12px; height: 12px; border-radius: 6px; background: #EA4335"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-size: 18px; font-weight: 600">Непрочитанное</div>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #F5B544; font-weight: 500"><span style="position: relative; width: 8px; height: 8px; display: block"><span class="ping" aria-hidden="true"></span><span class="blink" style="position: absolute; inset: 0; border-radius: 4px; background: #F5B544; display: block"></span></span>2 новых за 10 мин</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: #1A1D24; border-radius: 12px; padding: 4px">
+          <button type="button" style="height: 32px; border: 0; border-radius: 9px; background: #2C313B; color: #F2F3F5; font-size: 13px; font-weight: 600">Все · 5</button>
+          <button type="button" style="height: 32px; border: 0; border-radius: 9px; background: transparent; color: #9AA0AB; font-size: 13px; font-weight: 500">Почта · 3</button>
+          <button type="button" style="height: 32px; border: 0; border-radius: 9px; background: transparent; color: #9AA0AB; font-size: 13px; font-weight: 500">Slack · 2</button>
+        </div>
+
+        <a href="https://mail.google.com" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 10px 14px">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #262A33; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 14px; font-weight: 600">#dev · Антон <span style="color: #F5B544; font-weight: 500; font-size: 12px">· упоминание</span></div><div style="font-size: 13px; color: #C5CAD3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">@vitalii, глянешь PR до стендапа?</div></div>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #F5B544; font-weight: 500"><span class="blink" style="width: 8px; height: 8px; border-radius: 4px; background: #F5B544; display: block"></span>14:20</div>
+        </a>
+        <a href="https://mail.google.com" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 10px 14px">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #262A33; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 14px; font-weight: 600">Гэбриэль <span style="color: #9AA0AB; font-weight: 500; font-size: 12px">· Gmail, Работа</span></div><div style="font-size: 13px; color: #C5CAD3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Review ticket #42 — comments inline</div></div>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #F5B544; font-weight: 500"><span class="blink" style="width: 8px; height: 8px; border-radius: 4px; background: #F5B544; display: block"></span>13:55</div>
+        </a>
+        <a href="https://mail.google.com" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 10px 14px">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #262A33; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 14px; font-weight: 600">Марина <span style="color: #9AA0AB; font-weight: 500; font-size: 12px">· Slack, личное</span></div><div style="font-size: 13px; color: #C5CAD3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Пришлю акт к вечеру, ок?</div></div>
+          <div style="font-size: 12px; color: #9AA0AB">12:10</div>
+        </a>
+        <a href="https://mail.google.com" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 10px 14px">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #262A33; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 14px; font-weight: 600">HR, Contoso <span style="color: #9AA0AB; font-weight: 500; font-size: 12px">· Gmail, Вакансии</span></div><div style="font-size: 13px; color: #C5CAD3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Interview: .NET Engineer — slots for Thursday</div></div>
+          <div style="font-size: 12px; color: #9AA0AB">10:40</div>
+        </a>
+        <a href="https://mail.google.com" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 10px 14px">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #262A33; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 14px; font-weight: 600">Банк <span style="color: #9AA0AB; font-weight: 500; font-size: 12px">· Gmail, Личное</span></div><div style="font-size: 13px; color: #C5CAD3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Выписка за сентябрь готова</div></div>
+          <div style="font-size: 12px; color: #9AA0AB">вт</div>
+        </a>
+
+        <div style="margin-top: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <a href="https://mail.google.com" style="height: 36px; border-radius: 10px; background: #1A1D24; color: #9AA0AB; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>Открыть Gmail</a>
+          <a href="https://slack.com" style="height: 36px; border-radius: 10px; background: #1A1D24; color: #9AA0AB; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"></path></svg>Открыть Slack</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

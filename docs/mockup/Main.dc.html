@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Главный экран</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#F2F3F5;background:#111318}
+a{color:#F2F3F5;text-decoration:none}a:hover{color:#FFFFFF}
+input[type=checkbox]{width:20px;height:20px;margin:0;accent-color:#F5B544}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+.blink{animation:blink 1.2s ease-in-out infinite}
+.ping{position:absolute;inset:0;border-radius:50%;border:2px solid #F5B544;animation:ping 1.6s ease-out infinite}
+@media (prefers-reduced-motion: reduce){.blink,.ping{animation:none}.ping{display:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #111318; padding: 28px 20px 0; display: flex; flex-direction: column; gap: 18px; font-family: Inter, system-ui, sans-serif; color: #F2F3F5">
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="font-size: 13px; color: #9AA0AB; font-weight: 500">Среда, 22 октября · Гранада</div>
+      <div style="font-size: 64px; font-weight: 600; letter-spacing: -2px; line-height: 1">14:32</div>
+    </div>
+    <a href="Settings.dc.html" aria-label="Настройки" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; background: #1A1D24; margin-top: 4px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+    </a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+    <div style="background: #1A1D24; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9AA0AB; font-weight: 500">Москва</div>
+      <div style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px">15:32</div>
+      <div style="font-size: 12px; color: #F5B544; font-weight: 500">+1 ч · работает</div>
+    </div>
+    <div style="background: #1A1D24; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9AA0AB; font-weight: 500">Новосибирск</div>
+      <div style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px">19:32</div>
+      <div style="font-size: 12px; color: #9AA0AB; font-weight: 500">+5 ч · вечер</div>
+    </div>
+    <div style="background: #1A1D24; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #9AA0AB; font-weight: 500">Лондон</div>
+      <div style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px">13:32</div>
+      <div style="font-size: 12px; color: #F5B544; font-weight: 500">−1 ч · работает</div>
+    </div>
+  </div>
+
+  <div style="background: #1A1D24; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA0AB; font-weight: 500">
+      <span>Рабочие часы 9–18 по местному</span><span>сейчас</span>
+    </div>
+    <div style="position: relative; display: flex; flex-direction: column; gap: 6px">
+      <div style="position: absolute; left: 60.5%; top: -2px; bottom: -2px; width: 2px; background: #F5B544; border-radius: 1px"></div>
+      <div style="display: flex; align-items: center; gap: 8px"><span style="width: 72px; font-size: 11px; color: #9AA0AB">Гранада</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 37.5%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+      <div style="display: flex; align-items: center; gap: 8px"><span style="width: 72px; font-size: 11px; color: #9AA0AB">Москва</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 33.3%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+      <div style="display: flex; align-items: center; gap: 8px"><span style="width: 72px; font-size: 11px; color: #9AA0AB">Новосибирск</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 16.7%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+      <div style="display: flex; align-items: center; gap: 8px"><span style="width: 72px; font-size: 11px; color: #9AA0AB">Лондон</span><div style="flex: 1; height: 8px; background: #262A33; border-radius: 4px; position: relative"><div style="position: absolute; left: 41.7%; width: 37.5%; top: 0; bottom: 0; background: #6E7A8F; border-radius: 4px"></div></div></div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 15px; font-weight: 600">Сегодня</div>
+      <div style="font-size: 12px; color: #9AA0AB">Google Календарь</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 12px 14px; border: 1px solid #F5B544">
+      <div style="width: 48px; font-size: 15px; font-weight: 600; color: #F5B544">15:00</div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 15px; font-weight: 500">Стендап команды</div><div style="font-size: 12px; color: #F5B544">через 28 мин · Google Meet</div></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 14px">
+      <div style="width: 48px; font-size: 15px; font-weight: 600; color: #9AA0AB">17:30</div>
+      <div style="flex: 1; font-size: 15px">Созвон с клиентом</div>
+    </div>
+    <label style="display: flex; align-items: center; gap: 12px; padding: 8px 14px; cursor: pointer">
+      <div style="width: 48px; display: flex"><input type="checkbox"></div>
+      <div style="flex: 1; font-size: 15px">Ответить агентству по договору</div>
+    </label>
+    <label style="display: flex; align-items: center; gap: 12px; padding: 8px 14px; cursor: pointer">
+      <div style="width: 48px; display: flex"><input type="checkbox"></div>
+      <div style="flex: 1; font-size: 15px">Урок английского, глава 7</div>
+    </label>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="font-size: 15px; font-weight: 600">Непрочитанное</div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #F5B544; font-weight: 500"><span class="blink" style="width: 8px; height: 8px; border-radius: 4px; background: #F5B544; display: block"></span>2 новых за 10 мин</div>
+    </div>
+    <a href="Inbox.dc.html" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 12px 14px">
+      <div style="width: 40px; height: 40px; border-radius: 12px; background: #262A33; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0"><div style="font-size: 15px; font-weight: 500">Gmail</div><div style="font-size: 12px; color: #9AA0AB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Гэбриэль · Review ticket #42</div></div>
+      <div style="position: relative; width: 28px; height: 28px"><span class="ping" aria-hidden="true"></span><div class="blink" style="width: 28px; height: 28px; border-radius: 14px; background: #F5B544; color: #111318; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center">3</div></div>
+    </a>
+    <a href="Inbox.dc.html" style="display: flex; align-items: center; gap: 12px; background: #1A1D24; border-radius: 14px; padding: 12px 14px">
+      <div style="width: 40px; height: 40px; border-radius: 12px; background: #262A33; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F2F3F5" stroke-width="1.8" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"></path></svg></div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0"><div style="font-size: 15px; font-weight: 500">Slack</div><div style="font-size: 12px; color: #9AA0AB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#dev · @vitalii, глянешь PR?</div></div>
+      <div style="position: relative; width: 28px; height: 28px"><span class="ping" aria-hidden="true"></span><div class="blink" style="width: 28px; height: 28px; border-radius: 14px; background: #F5B544; color: #111318; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</div></div>
+    </a>
+  </div>
+
+  <div style="margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #262A33; margin-left: -20px; margin-right: -20px; padding: 8px 0 14px">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; color: #F5B544; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5B544" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Сегодня</a>
+    <a href="Inbox.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; color: #9AA0AB; font-size: 11px; font-weight: 500"><span style="position: relative; display: block; width: 22px; height: 22px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><path d="M3 13h5l2 3h4l2-3h5"></path><path d="M5 5h14l2 8v6H3v-6z"></path></svg><span class="blink" style="position: absolute; top: -2px; right: -4px; width: 10px; height: 10px; border-radius: 5px; background: #F5B544; border: 2px solid #111318; display: block"></span></span>Входящие</a>
+    <a href="Settings.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; color: #9AA0AB; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9AA0AB" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path><circle cx="9" cy="7" r="2" fill="#111318"></circle><circle cx="15" cy="12" r="2" fill="#111318"></circle><circle cx="8" cy="17" r="2" fill="#111318"></circle></svg>Настройки</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
