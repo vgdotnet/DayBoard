@@ -53,7 +53,8 @@ private val rowHeight = 48.dp
 
 /**
  * The zone list of the settings screen: rows of a fixed height with a drag handle on the left
- * and a remove button on the right. Dragging a handle moves the row; when it passes half of the
+ * and a remove button on the right. The first row is the home zone, so dragging a city to the
+ * top makes it home; the last remaining city cannot be removed. Dragging a handle moves the row; when it passes half of the
  * next row the two swap and the drag offset is reduced by one row, so the row follows the finger.
  */
 @Composable
@@ -110,10 +111,10 @@ fun ZoneList(
                 )
                 Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(zone.name, fontSize = 15.sp, color = c.text, maxLines = 1)
-                    if (zone.isHome) Text("· дом", fontSize = 12.sp, color = c.textSecondary)
+                    if (index == 0) Text("· дом", fontSize = 12.sp, color = c.textSecondary)
                 }
                 Text(utcLabel(zone, now), fontSize = 12.sp, color = c.textSecondary)
-                if (!zone.isHome) {
+                if (zones.size > 1) {
                     Icon(
                         painterResource(R.drawable.ic_close),
                         contentDescription = "Удалить ${zone.name}",

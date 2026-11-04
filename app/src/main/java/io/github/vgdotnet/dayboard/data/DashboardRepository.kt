@@ -24,7 +24,7 @@ interface DashboardRepository {
 class FakeDashboardRepository : DashboardRepository {
 
     private val zones = listOf(
-        ZoneClock("granada", "Гранада", "Гранада", ZoneId.of("Europe/Madrid"), isHome = true),
+        ZoneClock("granada", "Гранада", "Гранада", ZoneId.of("Europe/Madrid")),
         ZoneClock("moscow", "Москва", "Москва", ZoneId.of("Europe/Moscow")),
         ZoneClock("novosibirsk", "Новосибирск", "Новосиб.", ZoneId.of("Asia/Novosibirsk")),
         ZoneClock("london", "Лондон", "Лондон", ZoneId.of("Europe/London")),

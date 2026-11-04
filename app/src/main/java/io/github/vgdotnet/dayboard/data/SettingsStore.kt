@@ -21,7 +21,8 @@ data class Persisted(val zones: List<ZoneClock>?, val settings: AppSettings)
 
 /**
  * Settings and zones in DataStore Preferences. Zones are stored as text, one zone per line,
- * fields separated by tabs: id, name, short name, zone id, isHome, work start, work end.
+ * fields separated by tabs: id, name, short name, zone id, (unused), work start, work end.
+ * The first line is the home zone.
  */
 class SettingsStore(context: Context) {
     private val store = context.applicationContext.dataStore
@@ -60,7 +61,7 @@ class SettingsStore(context: Context) {
     }
 
     private fun encodeZones(zones: List<ZoneClock>): String = zones.joinToString("\n") { z ->
-        listOf(z.id, z.name, z.shortName, z.zone.id, z.isHome.toString(), z.workStart.toSecondOfDay() / 60, z.workEnd.toSecondOfDay() / 60)
+        listOf(z.id, z.name, z.shortName, z.zone.id, "", z.workStart.toSecondOfDay() / 60, z.workEnd.toSecondOfDay() / 60)
             .joinToString("\t")
     }
 
@@ -73,7 +74,6 @@ class SettingsStore(context: Context) {
             name = f[1],
             shortName = f[2],
             zone = zone,
-            isHome = f[4].toBoolean(),
             workStart = f[5].toIntOrNull()?.let(::minutesToTime) ?: LocalTime.of(9, 0),
             workEnd = f[6].toIntOrNull()?.let(::minutesToTime) ?: LocalTime.of(18, 0),
         )

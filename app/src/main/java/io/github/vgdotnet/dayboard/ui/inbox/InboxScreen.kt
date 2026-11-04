@@ -96,7 +96,7 @@ fun InboxList(
     val slack = all.filter { it.source == InboxSource.SLACK }
     val shown = when (filter) { 1 -> mail; 2 -> slack; else -> all }
     val recent = state.recentUnread(now).map { it.id }.toSet()
-    val today = shown.filter { it.time.toLocalDate() == now.toLocalDate() }
+    val today = shown.filter { it.time.withZoneSameInstant(now.zone).toLocalDate() == now.toLocalDate() }
     val earlier = shown - today.toSet()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 16.dp)) {
@@ -139,7 +139,7 @@ fun InboxList(
 private fun InboxRow(item: InboxItem, now: ZonedDateTime, isRecent: Boolean, compact: Boolean, onMarkRead: (String) -> Unit) {
     val c = DayBoard.colors
     val openUrl = rememberOpenUrl()
-    val timeText = if (Duration.between(item.time, now).toHours() < 20 && item.time.toLocalDate() == now.toLocalDate()) item.time.hhmm() else item.time.format(weekdayFormat)
+    val timeText = if (Duration.between(item.time, now).toHours() < 20 && item.time.withZoneSameInstant(now.zone).toLocalDate() == now.toLocalDate()) item.time.withZoneSameInstant(now.zone).hhmm() else item.time.withZoneSameInstant(now.zone).format(weekdayFormat)
     Card(Modifier.fillMaxWidth(), onClick = { onMarkRead(item.id); openUrl(item.openUrl) }) {
         Row(
             Modifier.padding(horizontal = 14.dp, vertical = if (compact) 10.dp else 12.dp),

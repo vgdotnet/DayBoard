@@ -49,7 +49,7 @@ fun ZoneCards(
     gap: Dp = 10.dp,
 ) {
     val c = DayBoard.colors
-    val others = zones.filter { !it.isHome }
+    val others = zones.drop(1)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(gap)) {
         others.chunked(3).forEach { rowZones ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {

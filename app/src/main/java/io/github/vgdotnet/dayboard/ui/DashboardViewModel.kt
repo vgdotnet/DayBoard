@@ -37,9 +37,10 @@ data class DashboardState(
     fun dateShown(now: ZonedDateTime): LocalDate = selectedDate ?: now.toLocalDate()
 
     fun eventsOn(date: LocalDate): List<CalendarEvent> =
-        events.filter { it.start.toLocalDate() == date }.sortedBy { it.start }
+        events.filter { it.start.withZoneSameInstant(home.zone).toLocalDate() == date }.sortedBy { it.start }
 
-    val home: ZoneClock get() = zones.first { it.isHome }
+    /** The home zone is the first in the list; the user reorders the list to change it. */
+    val home: ZoneClock get() = zones.first()
 
     fun nextEvent(now: ZonedDateTime): CalendarEvent? =
         events.filter { it.isUpcoming(now) }.minByOrNull { it.start }
@@ -80,8 +81,7 @@ class DashboardViewModel @JvmOverloads constructor(
 
     init {
         val zones = repository.zones()
-        val home = zones.first { it.isHome }
-        val start = ZonedDateTime.now(home.zone)
+        val start = ZonedDateTime.now(zones.first().zone)
         _now.value = start
         _state.value = DashboardState(
             zones = zones,
@@ -97,7 +97,7 @@ class DashboardViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             while (true) {
                 delay(1_000)
-                _now.value = ZonedDateTime.now(home.zone)
+                _now.value = ZonedDateTime.now(_state.value.home.zone)
             }
         }
     }
@@ -141,7 +141,7 @@ class DashboardViewModel @JvmOverloads constructor(
     }
 
     fun removeZone(id: String) {
-        _state.update { s -> s.copy(zones = s.zones.filterNot { it.id == id && !it.isHome }) }
+        _state.update { s -> if (s.zones.size <= 1) s else s.copy(zones = s.zones.filterNot { it.id == id }) }
         persist()
     }
 

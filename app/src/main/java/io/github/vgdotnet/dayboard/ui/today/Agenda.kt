@@ -49,7 +49,7 @@ fun AgendaSection(
         if (next != null) {
             Card(Modifier.fillMaxWidth(), border = c.highlightBorder, onClick = { openUrl(next.meetUrl ?: next.openUrl) }) {
                 Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(next.start.hhmm(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.accentText, modifier = Modifier.width(48.dp))
+                    Text(next.start.withZoneSameInstant(now.zone).hhmm(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.accentText, modifier = Modifier.width(48.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(next.title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = c.text)
                         val via = if (next.meetUrl != null) " · Google Meet" else ""
@@ -67,7 +67,7 @@ fun AgendaSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(event.start.hhmm(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.textSecondary, modifier = Modifier.width(48.dp))
+                Text(event.start.withZoneSameInstant(now.zone).hhmm(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.textSecondary, modifier = Modifier.width(48.dp))
                 Text(event.title, fontSize = 15.sp, color = c.text, modifier = Modifier.weight(1f))
             }
         }

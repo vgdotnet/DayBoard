@@ -215,7 +215,7 @@ private fun HourGrid(
                 if (bottom <= top) return@forEach
                 val counterpart = event.counterpartZoneId?.let { id -> zones.firstOrNull { it.id == id } }
                 val details = buildString {
-                    append(event.start.hhmm()); append(" - "); append(event.end.hhmm())
+                    append(event.start.withZoneSameInstant(now.zone).hhmm()); append(" - "); append(event.end.withZoneSameInstant(now.zone).hhmm())
                     if (event.meetUrl != null) append(" · Google Meet")
                     if (counterpart != null) append(" · ${event.start.hhmmIn(counterpart)} в ${inZoneName(counterpart)}")
                     if (event.isUpcoming(now) && event.start.isAfter(now)) append(" · ${formatMinutesUntil(event.minutesUntil(now))}")

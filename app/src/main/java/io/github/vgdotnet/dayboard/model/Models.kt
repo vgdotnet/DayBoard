@@ -5,12 +5,12 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+/** One clock. The home zone is the first entry of the zone list, see [io.github.vgdotnet.dayboard.ui.DashboardState.home]. */
 data class ZoneClock(
     val id: String,
     val name: String,
     val shortName: String,
     val zone: ZoneId,
-    val isHome: Boolean = false,
     val workStart: LocalTime = LocalTime.of(9, 0),
     val workEnd: LocalTime = LocalTime.of(18, 0),
 ) {
