@@ -87,6 +87,8 @@ data class InboxItem(
     val unread: Boolean,
     val isMention: Boolean = false,
     val openUrl: String = source.openUrl,
+    /** Gmail account the message belongs to (from the notification), used for the unread count. */
+    val account: String = "",
 )
 
 data class UnreadSummary(
@@ -106,4 +108,8 @@ data class AppSettings(
     val pollMinutes: Int = 5,
     /** The working-hours strip is collapsed to one line. */
     val workHoursCollapsed: Boolean = false,
+    /** Count unread in the Important label instead of the whole inbox. */
+    val gmailImportantOnly: Boolean = false,
+    /** Gmail accounts seen in notifications; the label provider is queried per account. */
+    val gmailAccounts: Set<String> = emptySet(),
 )

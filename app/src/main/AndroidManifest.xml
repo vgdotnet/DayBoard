@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="com.google.android.gm.permission.READ_CONTENT_PROVIDER" />
+
+    <!-- Package visibility (Android 11+): launching Gmail and Slack, reading the Gmail label provider. -->
+    <queries>
+        <package android:name="com.google.android.gm" />
+        <package android:name="com.Slack" />
+    </queries>
 
     <application
         android:allowBackup="true"

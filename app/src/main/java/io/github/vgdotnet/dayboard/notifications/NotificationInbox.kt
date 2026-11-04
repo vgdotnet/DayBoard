@@ -111,7 +111,8 @@ object NotificationInbox {
                     .put("label", item.label)
                     .put("time", item.time.toInstant().toEpochMilli())
                     .put("unread", item.unread)
-                    .put("mention", item.isMention),
+                    .put("mention", item.isMention)
+                    .put("account", item.account),
             )
         }
         runCatching { f.writeText(array.toString()) }
@@ -133,6 +134,7 @@ object NotificationInbox {
                     time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(o.getLong("time")), ZoneId.systemDefault()),
                     unread = o.getBoolean("unread"),
                     isMention = o.optBoolean("mention"),
+                    account = o.optString("account"),
                 )
             }
         }.getOrDefault(emptyList())

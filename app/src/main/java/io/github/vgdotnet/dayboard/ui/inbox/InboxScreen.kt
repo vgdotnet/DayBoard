@@ -111,8 +111,11 @@ fun InboxList(
     val earlier = shown - today.toSet()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 16.dp)) {
+        // The mail count comes from the Gmail app when its provider is readable, otherwise from the notifications.
+        val mailUnread = state.gmailUnread ?: mail.count { it.unread }
+        val slackUnread = slack.count { it.unread }
         Segmented(
-            options = listOf("Все · ${all.count { it.unread }}", "Почта · ${mail.count { it.unread }}", "Slack · ${slack.count { it.unread }}"),
+            options = listOf("Все · ${mailUnread + slackUnread}", "Почта · $mailUnread", "Slack · $slackUnread"),
             selected = filter,
             height = if (compact) 32.dp else 36.dp,
             onSelect = { filter = it },

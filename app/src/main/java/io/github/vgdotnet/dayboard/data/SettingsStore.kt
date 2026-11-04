@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.github.vgdotnet.dayboard.model.AppSettings
 import io.github.vgdotnet.dayboard.model.ZoneClock
@@ -41,6 +42,8 @@ class SettingsStore(context: Context) {
             quietTo = p[QUIET_TO]?.let(::minutesToTime) ?: defaults.quietTo,
             pollMinutes = p[POLL] ?: defaults.pollMinutes,
             workHoursCollapsed = p[WORK_HOURS_COLLAPSED] ?: defaults.workHoursCollapsed,
+            gmailImportantOnly = p[GMAIL_IMPORTANT] ?: defaults.gmailImportantOnly,
+            gmailAccounts = p[GMAIL_ACCOUNTS] ?: defaults.gmailAccounts,
         )
         return Persisted(zones, settings)
     }
@@ -57,6 +60,8 @@ class SettingsStore(context: Context) {
             p[QUIET_TO] = settings.quietTo.toSecondOfDay() / 60
             p[POLL] = settings.pollMinutes
             p[WORK_HOURS_COLLAPSED] = settings.workHoursCollapsed
+            p[GMAIL_IMPORTANT] = settings.gmailImportantOnly
+            p[GMAIL_ACCOUNTS] = settings.gmailAccounts
         }
     }
 
@@ -92,5 +97,7 @@ class SettingsStore(context: Context) {
         val QUIET_TO = intPreferencesKey("quiet_to")
         val POLL = intPreferencesKey("poll_minutes")
         val WORK_HOURS_COLLAPSED = booleanPreferencesKey("work_hours_collapsed")
+        val GMAIL_IMPORTANT = booleanPreferencesKey("gmail_important_only")
+        val GMAIL_ACCOUNTS = stringSetPreferencesKey("gmail_accounts")
     }
 }

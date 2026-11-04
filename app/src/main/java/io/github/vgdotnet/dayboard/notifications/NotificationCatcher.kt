@@ -63,12 +63,14 @@ class NotificationCatcher : NotificationListenerService() {
             val preview: String
             val label: String
             var mention = false
+            var account = ""
             when (source) {
                 InboxSource.GMAIL -> {
                     if (title.isEmpty()) return null
                     sender = title
                     preview = text.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.joinToString(" · ").ifEmpty { "(без темы)" }
                     label = if (subText.isNotEmpty()) "Gmail · ${subText.substringBefore('@')}" else "Gmail"
+                    account = subText.takeIf { it.contains('@') }.orEmpty()
                 }
                 InboxSource.SLACK -> {
                     val channel = conversation ?: title
@@ -90,6 +92,7 @@ class NotificationCatcher : NotificationListenerService() {
                 time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(sbn.postTime), ZoneId.systemDefault()),
                 unread = true,
                 isMention = mention,
+                account = account,
             )
         }
     }

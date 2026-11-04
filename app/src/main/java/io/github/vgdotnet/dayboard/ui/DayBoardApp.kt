@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.vgdotnet.dayboard.R
+import io.github.vgdotnet.dayboard.data.GmailCounts
 import io.github.vgdotnet.dayboard.notifications.NotificationInbox
 import io.github.vgdotnet.dayboard.ui.components.BlinkProvider
 import io.github.vgdotnet.dayboard.ui.components.NavDot
@@ -73,13 +74,15 @@ fun DayBoardApp(viewModel: DashboardViewModel = viewModel()) {
     val onGrantAccess = { NotificationInbox.openAccessSettings(context) }
     val calendarLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.calendarPermissionChanged() }
     val onGrantCalendar = { calendarLauncher.launch(Manifest.permission.READ_CALENDAR) }
+    val gmailLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.gmailPermissionChanged() }
+    val onGrantGmail = { gmailLauncher.launch(GmailCounts.PERMISSION) }
 
     BlinkProvider(enabledInSettings = state.settings.blinkEnabled) {
         Box(Modifier.fillMaxSize().background(DayBoard.colors.background)) {
             if (tablet) {
-                TabletShell(state, now, destination, { destination = it }, viewModel, accessGranted, onGrantAccess, onGrantCalendar)
+                TabletShell(state, now, destination, { destination = it }, viewModel, accessGranted, onGrantAccess, onGrantCalendar, onGrantGmail)
             } else {
-                PhoneShell(state, now, destination, { destination = it }, viewModel, accessGranted, onGrantAccess, onGrantCalendar)
+                PhoneShell(state, now, destination, { destination = it }, viewModel, accessGranted, onGrantAccess, onGrantCalendar, onGrantGmail)
             }
         }
     }
@@ -95,6 +98,7 @@ private fun PhoneShell(
     accessGranted: Boolean,
     onGrantAccess: () -> Unit,
     onGrantCalendar: () -> Unit,
+    onGrantGmail: () -> Unit,
 ) {
     val c = DayBoard.colors
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
@@ -102,7 +106,7 @@ private fun PhoneShell(
             when (destination) {
                 Destination.Today -> TodayScreen(state, now, viewModel::toggleTask, { onNavigate(Destination.Inbox) }, { onNavigate(Destination.Settings) }, viewModel::toggleWorkHours, accessGranted = accessGranted, onGrantAccess = onGrantAccess, calendarGranted = state.calendarGranted, onGrantCalendar = onGrantCalendar)
                 Destination.Inbox -> InboxScreen(state, now, viewModel::openItem, viewModel::markAllRead, accessGranted, onGrantAccess)
-                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, accessGranted, onGrantAccess, state.calendarGranted, onGrantCalendar)
+                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, accessGranted, onGrantAccess, state.calendarGranted, onGrantCalendar, state.gmailGranted, onGrantGmail, viewModel::addGmailAccount, viewModel::removeGmailAccount)
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.cardInset))
@@ -136,6 +140,7 @@ private fun TabletShell(
     accessGranted: Boolean,
     onGrantAccess: () -> Unit,
     onGrantCalendar: () -> Unit,
+    onGrantGmail: () -> Unit,
 ) {
     val c = DayBoard.colors
     Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
@@ -166,7 +171,7 @@ private fun TabletShell(
         Box(Modifier.weight(1f).fillMaxHeight()) {
             when (destination) {
                 Destination.Today, Destination.Inbox -> TabletTodayScreen(state, now, viewModel::toggleTask, viewModel::openItem, accessGranted, onGrantAccess, { viewModel.shiftDay(-1) }, { viewModel.shiftDay(1) }, viewModel::goToToday, viewModel::toggleWorkHours, onGrantCalendar)
-                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, accessGranted, onGrantAccess, state.calendarGranted, onGrantCalendar, Modifier.width(520.dp))
+                Destination.Settings -> SettingsScreen(state.zones, now, state.settings, viewModel::updateSettings, { viewModel.addZone(it.toZoneClock()) }, viewModel::removeZone, viewModel::moveZone, accessGranted, onGrantAccess, state.calendarGranted, onGrantCalendar, state.gmailGranted, onGrantGmail, viewModel::addGmailAccount, viewModel::removeGmailAccount, Modifier.width(520.dp))
             }
         }
     }

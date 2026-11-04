@@ -55,10 +55,18 @@ fun SettingsScreen(
     onGrantAccess: () -> Unit,
     calendarGranted: Boolean,
     onGrantCalendar: () -> Unit,
+    gmailGranted: Boolean,
+    onGrantGmail: () -> Unit,
+    onAddGmailAccount: (String) -> Unit,
+    onRemoveGmailAccount: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val c = DayBoard.colors
     var addingCity by rememberSaveable { mutableStateOf(false) }
+    var addingAccount by rememberSaveable { mutableStateOf(false) }
+    if (addingAccount) {
+        TextDialog("Аккаунт Gmail", "адрес@gmail.com", onConfirm = { onAddGmailAccount(it); addingAccount = false }, onDismiss = { addingAccount = false })
+    }
     if (addingCity) {
         AddCityDialog(zones, now, onAdd = { onAddZone(it); addingCity = false }, onDismiss = { addingCity = false })
     }
@@ -94,6 +102,44 @@ fun SettingsScreen(
             }
             Divider()
             Row(
+                Modifier.fillMaxWidth().clickable(onClick = onGrantGmail).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Счётчик Gmail", fontSize = 15.sp, color = c.text)
+                    Text("число непрочитанных из приложения Gmail", fontSize = 12.sp, color = c.textSecondary)
+                }
+                Text(
+                    if (gmailGranted) "доступ есть" else "дать доступ",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (gmailGranted) c.success else c.accentText,
+                )
+            }
+            settings.gmailAccounts.sorted().forEach { account ->
+                Divider()
+                SettingsRow {
+                    Text(account, fontSize = 15.sp, color = c.text, modifier = Modifier.weight(1f).padding(start = 12.dp), maxLines = 1)
+                    Icon(
+                        painterResource(R.drawable.ic_close),
+                        contentDescription = "Убрать $account",
+                        tint = c.textTertiary,
+                        modifier = Modifier.size(28.dp).clickable { onRemoveGmailAccount(account) }.padding(6.dp),
+                    )
+                }
+            }
+            Divider()
+            Row(
+                Modifier.fillMaxWidth().clickable { addingAccount = true }.padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(painterResource(R.drawable.ic_plus), contentDescription = null, tint = c.accentText, modifier = Modifier.size(16.dp))
+                Text("Добавить аккаунт Gmail", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = c.accentText)
+            }
+            Divider()
+            Row(
                 Modifier.fillMaxWidth().clickable(onClick = onGrantCalendar).padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -112,7 +158,12 @@ fun SettingsScreen(
         }
 
         Group("Уведомления") {
-            ToggleRow("Почта", "только ярлык «Важные»", settings.mailEnabled) { v -> onChange { it.copy(mailEnabled = v) } }
+            ToggleRow(
+                "Почта: только «Важные»",
+                if (settings.gmailAccounts.isEmpty()) "добавьте аккаунт Gmail в «Источниках» или дождитесь уведомления"
+                else "иначе считаются все входящие",
+                settings.gmailImportantOnly,
+            ) { v -> onChange { it.copy(gmailImportantOnly = v) } }
             Divider()
             ToggleRow("Slack", "упоминания и личные сообщения", settings.slackEnabled) { v -> onChange { it.copy(slackEnabled = v) } }
             Divider()
@@ -177,6 +228,38 @@ private fun SettingsRow(content: @Composable androidx.compose.foundation.layout.
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
+    )
+}
+
+/** One-line text input with OK / cancel. */
+@Composable
+private fun TextDialog(title: String, placeholder: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    val c = DayBoard.colors
+    var value by rememberSaveable { mutableStateOf("") }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = c.card,
+        titleContentColor = c.text,
+        textContentColor = c.text,
+        title = { Text(title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
+        text = {
+            androidx.compose.material3.OutlinedTextField(
+                value = value,
+                onValueChange = { value = it },
+                placeholder = { Text(placeholder, color = c.textTertiary) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = c.accent,
+                    unfocusedBorderColor = c.cardInset,
+                    focusedTextColor = c.text,
+                    unfocusedTextColor = c.text,
+                    cursorColor = c.accent,
+                ),
+            )
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { onConfirm(value) }) { Text("Добавить", color = c.accentText) } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Отмена", color = c.accentText) } },
     )
 }
 

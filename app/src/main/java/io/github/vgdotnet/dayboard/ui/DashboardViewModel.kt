@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vgdotnet.dayboard.data.DashboardRepository
 import io.github.vgdotnet.dayboard.data.DeviceCalendar
+import io.github.vgdotnet.dayboard.data.GmailCounts
 import io.github.vgdotnet.dayboard.data.FakeDashboardRepository
 import io.github.vgdotnet.dayboard.data.SettingsStore
 import io.github.vgdotnet.dayboard.model.AppSettings
@@ -38,6 +39,10 @@ data class DashboardState(
     val selectedDate: LocalDate? = null,
     /** READ_CALENDAR granted; without it the agenda shows a prompt instead of events. */
     val calendarGranted: Boolean = false,
+    /** Unread count from the Gmail label provider; null when it could not be read (then notifications are counted). */
+    val gmailUnread: Int? = null,
+    /** Gmail's provider permission granted. */
+    val gmailGranted: Boolean = false,
 ) {
     fun dateShown(now: ZonedDateTime): LocalDate = selectedDate ?: now.toLocalDate()
 
@@ -55,7 +60,7 @@ data class DashboardState(
         val latest = items.firstOrNull()
         return UnreadSummary(
             source = source,
-            count = items.size,
+            count = if (source == InboxSource.GMAIL) gmailUnread ?: items.size else items.size,
             latestLine = latest?.let { "${it.sender} · ${it.preview}" } ?: "ничего нового",
         )
     }
@@ -78,7 +83,9 @@ class DashboardViewModel @JvmOverloads constructor(
 
     private val store = SettingsStore(application)
     private val calendar = DeviceCalendar(application)
+    private val gmail = GmailCounts(application)
     private var stopObserving: (() -> Unit)? = null
+    private var stopGmailObserving: (() -> Unit)? = null
 
     private val _state = MutableStateFlow(DashboardState())
     val state: StateFlow<DashboardState> = _state.asStateFlow()
@@ -94,22 +101,31 @@ class DashboardViewModel @JvmOverloads constructor(
             zones = zones,
             tasks = repository.tasks(),
             calendarGranted = calendar.hasPermission,
+            gmailGranted = gmail.hasPermission,
         )
         refreshEvents()
         startObserving()
         NotificationInbox.init(application)
         viewModelScope.launch {
-            NotificationInbox.items.collect { list -> _state.update { it.copy(inbox = list) } }
+            NotificationInbox.items.collect { list ->
+                _state.update { it.copy(inbox = list) }
+                rememberGmailAccounts(list)
+                refreshGmailCount()
+            }
         }
+        stopGmailObserving = gmail.observe { refreshGmailCount() }
         viewModelScope.launch {
             val saved = store.load()
             _state.update { it.copy(zones = saved.zones ?: it.zones, settings = saved.settings) }
             loaded = true
+            refreshGmailCount()
         }
         viewModelScope.launch {
             while (true) {
                 delay(1_000)
-                _now.value = ZonedDateTime.now(_state.value.home.zone)
+                val t = ZonedDateTime.now(_state.value.home.zone)
+                _now.value = t
+                if (t.second == 0 && t.minute % _state.value.settings.pollMinutes == 0) refreshGmailCount()
             }
         }
     }
@@ -145,7 +161,38 @@ class DashboardViewModel @JvmOverloads constructor(
 
     override fun onCleared() {
         stopObserving?.invoke()
+        stopGmailObserving?.invoke()
     }
+
+    /** Gmail accounts come from the notifications' sub text; new ones are saved for the counter. */
+    private fun rememberGmailAccounts(items: List<InboxItem>) {
+        val seen = items.filter { it.source == InboxSource.GMAIL }.map { it.account }.filter { it.isNotEmpty() }.toSet()
+        val known = _state.value.settings.gmailAccounts
+        if (seen.isNotEmpty() && !known.containsAll(seen)) updateSettings { it.copy(gmailAccounts = known + seen) }
+    }
+
+    /** Reads the unread count from the Gmail provider off the main thread. */
+    fun refreshGmailCount() {
+        val settings = _state.value.settings
+        val granted = gmail.hasPermission
+        viewModelScope.launch(Dispatchers.IO) {
+            val count = if (granted) gmail.unread(settings.gmailAccounts, settings.gmailImportantOnly) else null
+            _state.update { it.copy(gmailUnread = count, gmailGranted = granted) }
+        }
+    }
+
+    /** After the permission dialog: start observing and read the count. */
+    fun gmailPermissionChanged() {
+        if (stopGmailObserving == null) stopGmailObserving = gmail.observe { refreshGmailCount() }
+        refreshGmailCount()
+    }
+
+    fun addGmailAccount(account: String) {
+        val a = account.trim().lowercase()
+        if (a.contains('@')) updateSettings { it.copy(gmailAccounts = it.gmailAccounts + a) }
+    }
+
+    fun removeGmailAccount(account: String) = updateSettings { it.copy(gmailAccounts = it.gmailAccounts - account) }
 
     /** Set once the saved zones and settings are in; until then nothing is written back. */
     private var loaded = false
@@ -205,8 +252,11 @@ class DashboardViewModel @JvmOverloads constructor(
     fun toggleWorkHours() = updateSettings { it.copy(workHoursCollapsed = !it.workHoursCollapsed) }
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
+        val before = _state.value.settings
         _state.update { s -> s.copy(settings = transform(s.settings)) }
         persist()
+        val after = _state.value.settings
+        if (after.gmailImportantOnly != before.gmailImportantOnly || after.gmailAccounts != before.gmailAccounts) refreshGmailCount()
     }
 }
 
