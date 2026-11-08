@@ -116,7 +116,8 @@ fun MinerScreen(
                 )
             }
             Divider()
-            BigValue("Скорость", if (status.running) formatHashrate(status.hashrate) else "-", "${status.threads.takeIf { it > 0 } ?: settings.threads} ${plural(status.threads.takeIf { it > 0 } ?: settings.threads, "поток", "потока", "потоков")}")
+            val threads = status.threads.takeIf { it > 0 } ?: settings.threads
+            BigValue("Скорость", if (status.running) formatHashrate(status.hashrate) else "-", "$threads ${plural(threads, "поток", "потока", "потоков")}${if (status.kernel.isNotEmpty()) " · ядро ${status.kernel}" else ""}")
             Divider()
             ValueRow("Доли", "${status.accepted} принято${if (status.rejected > 0) " · ${status.rejected} отклонено" else ""}", if (status.lastShareAt > 0) "последняя ${ago(status.lastShareAt, now)}" else "порог ${formatDifficulty(status.shareDifficulty)}")
             Divider()

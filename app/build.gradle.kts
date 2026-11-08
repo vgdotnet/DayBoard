@@ -8,6 +8,7 @@ android {
     namespace = "io.github.vgdotnet.dayboard"
     compileSdk = 37
     compileSdkMinor = 1
+    ndkVersion = "29.0.14033849"
 
     defaultConfig {
         applicationId = "io.github.vgdotnet.dayboard"
@@ -15,6 +16,17 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+        ndk {
+            // arm64 gets the SHA-256 instruction kernel; the other ABIs carry a stub and use the Kotlin kernel
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildTypes {

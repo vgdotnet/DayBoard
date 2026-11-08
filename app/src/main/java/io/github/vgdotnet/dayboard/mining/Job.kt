@@ -18,6 +18,8 @@ class Job(
     /** 80-byte header of the job's version with nonce 0. */
     val header: ByteArray,
     val sw: Sha256Kernel.SwJob,
+    /** Handle of the native kernel's prepared job, 0 when the Kotlin kernel is used. */
+    val nativeHandle: Long = 0,
 ) {
     val versions: Int get() = versionBits.size
 
@@ -99,5 +101,21 @@ object PoW {
         val x = IntArray(61)
         val swOk = (Sha256Kernel.scan(sw, GENESIS_NONCE, w, x) and 1) != 0 && (Sha256Kernel.scan(sw, GENESIS_NONCE + 1, w, x) and 1) == 0
         return refOk && swOk
+    }
+
+    /** The native kernel must find the genesis nonce (and nothing else) in 16 words around it. */
+    fun nativeSelfTest(): Boolean {
+        if (!NativeKernel.isAvailable) return false
+        val genesis = GENESIS_HEADER.hexToBytes()
+        val handle = NativeKernel.prepare(genesis, 1)
+        if (handle == 0L) return false
+        try {
+            val word = Integer.reverseBytes(GENESIS_NONCE)
+            val out = IntArray(16)
+            val n = NativeKernel.scan(handle, word - 8, 16, out)
+            return n == 1 && out[0] == word && out[1] == 0
+        } finally {
+            NativeKernel.release(handle)
+        }
     }
 }

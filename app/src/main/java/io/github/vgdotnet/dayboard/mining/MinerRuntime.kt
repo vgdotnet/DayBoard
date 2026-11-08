@@ -26,6 +26,8 @@ data class MinerStatus(
     val lastShareAt: Long = 0,
     val selfTestOk: Boolean? = null,
     val paused: Boolean = false,
+    /** "ARMv8 SHA2" for the native kernel, "Kotlin" for the software one. */
+    val kernel: String = "",
 )
 
 /** Process-wide miner state so the UI reads it without binding the service. */

@@ -17,7 +17,7 @@ import org.json.JSONObject
  * its shares. Runs on its own thread and reconnects when the pool drops, goes silent or does not
  * answer a share. A port of the ESP32 miner's stratum.cpp.
  */
-class StratumClient(private val settings: MinerSettings, private val engine: MinerEngine) {
+class StratumClient(private val settings: MinerSettings, private val engine: MinerEngine, private val useNative: Boolean) {
     @Volatile private var running = false
     private var thread: Thread? = null
     @Volatile private var socket: Socket? = null
@@ -213,7 +213,8 @@ class StratumClient(private val settings: MinerSettings, private val engine: Min
         val headers = (0 until versions).map { v ->
             h.copyOf().also { it.putLe32(0, version xor bits[v]) }
         }
-        val job = Job(++jobCounter, id, ntime, extranonce2, nbits, height, bits, h, Sha256Kernel.SwJob(headers))
+        val handle = if (useNative) NativeKernel.prepare(ByteArray(80 * versions).also { all -> headers.forEachIndexed { i, hv -> System.arraycopy(hv, 0, all, 80 * i, 80) } }, versions) else 0L
+        val job = Job(++jobCounter, id, ntime, extranonce2, nbits, height, bits, h, Sha256Kernel.SwJob(headers), handle)
         MinerRuntime.update { it.copy(height = height, netDifficulty = PoW.bitsDifficulty(nbits)) }
         engine.setJob(job)
     }

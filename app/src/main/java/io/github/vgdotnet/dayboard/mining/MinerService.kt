@@ -90,9 +90,12 @@ class MinerService : Service() {
 
     private fun startMining() {
         val ok = runCatching { PoW.selfTest() }.getOrDefault(false)
+        // The native kernel is used only when it passes its own self-test; otherwise the Kotlin one
+        val native = runCatching { PoW.nativeSelfTest() }.getOrDefault(false)
+        if (NativeKernel.isAvailable && !native) Log.w(TAG, "native kernel failed the self-test, using Kotlin")
         val threads = settings.threads.coerceIn(1, Runtime.getRuntime().availableProcessors())
         MinerRuntime.update {
-            it.copy(running = true, selfTestOk = ok, threads = threads, startedAt = System.currentTimeMillis(), status = if (ok) "старт" else "самопроверка не прошла")
+            it.copy(running = true, selfTestOk = ok, threads = threads, startedAt = System.currentTimeMillis(), kernel = if (native) "ARMv8 SHA2" else "Kotlin", status = if (ok) "старт" else "самопроверка не прошла")
         }
         if (!ok) {
             Log.e(TAG, "self-test failed, not mining")
@@ -100,10 +103,10 @@ class MinerService : Service() {
         }
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DayBoard:miner").also { it.acquire() }
-        val e = MinerEngine(threads)
+        val e = MinerEngine(threads, native)
         engine = e
         e.start()
-        stratum = StratumClient(settings, e).also { it.start() }
+        stratum = StratumClient(settings, e, native).also { it.start() }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(Intent.ACTION_POWER_CONNECTED)
