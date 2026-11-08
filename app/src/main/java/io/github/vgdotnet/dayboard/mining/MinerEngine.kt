@@ -24,17 +24,13 @@ class MinerEngine(private val threads: Int, private val useNative: Boolean) {
     @Volatile var best = 0.0
         private set
 
-    /** Native handles of replaced jobs; freed one job later, when no worker can still be scanning them. */
-    private val retired = ArrayDeque<Long>()
-
     fun setJob(j: Job?) {
         synchronized(lock) {
             val old = job
             job = j
             jobSeq = j?.seq ?: 0
             if (j == null) shares.clear() // shares of a dropped connection cannot be submitted to the new one
-            while (retired.size > 1) NativeKernel.release(retired.removeFirst())
-            if (old != null && old.nativeHandle != 0L) retired.addLast(old.nativeHandle)
+            old?.retire() // its native handle is freed when the last worker leaves the scan
         }
     }
 
@@ -57,9 +53,8 @@ class MinerEngine(private val threads: Int, private val useNative: Boolean) {
         workers.forEach { runCatching { it.join(1_000) } }
         workers.clear()
         synchronized(lock) {
-            job?.nativeHandle?.takeIf { it != 0L }?.let { retired.addLast(it) }
+            job?.retire()
             job = null
-            while (retired.isNotEmpty()) NativeKernel.release(retired.removeFirst())
         }
     }
 
@@ -89,7 +84,12 @@ class MinerEngine(private val threads: Int, private val useNative: Boolean) {
                 // Check for a new job every 4096 nonces (a few milliseconds)
                 if (jobSeq != seq) break
                 if (native) {
-                    val n = NativeKernel.scan(j.nativeHandle, word, 4096, out)
+                    if (!j.acquire()) break // retired under us: the handle may be gone
+                    val n = try {
+                        NativeKernel.scan(j.nativeHandle, word, 4096, out)
+                    } finally {
+                        j.release()
+                    }
                     for (k in 0 until n) onHit(j, Integer.reverseBytes(out[2 * k]), out[2 * k + 1])
                     word += 4096
                 } else {

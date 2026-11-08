@@ -2,8 +2,6 @@ package io.github.vgdotnet.dayboard.mining
 
 import android.util.Log
 import io.github.vgdotnet.dayboard.model.MinerSettings
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.Writer
 import java.net.InetSocketAddress
@@ -82,40 +80,53 @@ class StratumClient(private val settings: MinerSettings, private val engine: Min
     private fun session(s: Socket) {
         extranonce1 = ""
         versionMask = 0
-        val reader = BufferedReader(InputStreamReader(s.getInputStream(), Charsets.UTF_8))
+        val input = s.getInputStream()
         val out = OutputStreamWriter(s.getOutputStream(), Charsets.UTF_8)
+        val user = "${settings.wallet}.${settings.worker}"
         MinerRuntime.status("subscribing")
-        send(out, """{"id":3,"method":"mining.configure","params":[["version-rolling"],{"version-rolling.mask":"${VERSION_MASK.hex8()}","version-rolling.min-bit-count":2}]}""" + "\n")
-        send(out, """{"id":1,"method":"mining.subscribe","params":["DayBoard-Android/0.1"]}""" + "\n")
-        send(out, """{"id":2,"method":"mining.authorize","params":["${settings.wallet}.${settings.worker}","${settings.password}"]}""" + "\n")
-        send(out, """{"id":4,"method":"mining.suggest_difficulty","params":[${settings.suggestDifficulty}]}""" + "\n")
+        send(out, message(3, "mining.configure", JSONArray().put(JSONArray().put("version-rolling")).put(
+            JSONObject().put("version-rolling.mask", VERSION_MASK.hex8()).put("version-rolling.min-bit-count", 2))))
+        send(out, message(1, "mining.subscribe", JSONArray().put("DayBoard-Android/0.1")))
+        send(out, message(2, "mining.authorize", JSONArray().put(user).put(settings.password)))
+        send(out, message(4, "mining.suggest_difficulty", JSONArray().put(settings.suggestDifficulty)))
 
         val pending = HashMap<Int, Long>() // id of a submitted share -> time sent
         var nextId = 10
         var lastData = System.currentTimeMillis()
+        // Bytes are accumulated here and split on newlines: a read timeout loses nothing, and a
+        // read of -1 is the pool closing the connection (the protocol is ASCII JSON lines)
+        val buf = ByteArray(8192)
+        val acc = StringBuilder()
         while (running && !s.isClosed) {
-            val line = try {
-                reader.readLine()
+            val n = try {
+                input.read(buf)
             } catch (_: SocketTimeoutException) {
-                null
-            } ?: run {
-                if (s.isInputShutdown) return
-                null
+                0
             }
-            if (line != null) {
-                lastData = System.currentTimeMillis()
-                if (!handleLine(line, pending)) return
-            } else if (reader.ready().not() && s.isClosed) {
+            if (n < 0) {
+                MinerRuntime.status("pool closed")
                 return
+            }
+            if (n > 0) {
+                lastData = System.currentTimeMillis()
+                acc.append(String(buf, 0, n, Charsets.ISO_8859_1))
+                while (true) {
+                    val eol = acc.indexOf("\n")
+                    if (eol < 0) break
+                    val line = acc.substring(0, eol).trimEnd('\r')
+                    acc.delete(0, eol + 1)
+                    if (!handleLine(line, pending)) return
+                }
+                if (acc.length > 1 shl 20) acc.setLength(0) // a megabyte without a newline is not Stratum
             }
 
             var share = engine.takeShare()
             while (share != null) {
-                val bits = if (share.versionBits != 0) ",\"${share.versionBits.hex8()}\"" else ""
-                val msg = """{"id":$nextId,"method":"mining.submit","params":["${settings.wallet}.${settings.worker}","${share.jobId}","${share.extranonce2}","${share.ntime}","${share.nonce.hex8()}"$bits]}""" + "\n"
-                pending[nextId++] = System.currentTimeMillis()
+                val params = JSONArray().put(user).put(share.jobId).put(share.extranonce2).put(share.ntime).put(share.nonce.hex8())
+                if (share.versionBits != 0) params.put(share.versionBits.hex8())
+                pending[nextId] = System.currentTimeMillis()
                 Log.i(TAG, "share difficulty ${"%.3f".format(share.difficulty)}")
-                send(out, msg)
+                send(out, message(nextId++, "mining.submit", params))
                 share = engine.takeShare()
             }
 
@@ -130,6 +141,9 @@ class StratumClient(private val settings: MinerSettings, private val engine: Min
             }
         }
     }
+
+    private fun message(id: Int, method: String, params: JSONArray): String =
+        JSONObject().put("id", id).put("method", method).put("params", params).toString() + "\n"
 
     /** One line from the pool; false means the connection must be closed. */
     private fun handleLine(line: String, pending: MutableMap<Int, Long>): Boolean {

@@ -18,6 +18,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -36,6 +37,7 @@ import io.github.vgdotnet.dayboard.ui.components.BlinkDot
 import io.github.vgdotnet.dayboard.ui.components.Card
 import io.github.vgdotnet.dayboard.ui.components.TextDialog
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
+import io.github.vgdotnet.dayboard.ui.today.plural
 import java.time.ZonedDateTime
 
 /** Miner screen in the style of Settings: state, pool, performance. */
@@ -58,7 +60,7 @@ fun MinerScreen(
             "password" -> listOf("Пароль пула", "x", settings.password, false)
             else -> listOf("Порог доли", "0.005", settings.suggestDifficulty.toString(), true)
         }
-        TextDialog(
+        key(field) { TextDialog(
             title as String, placeholder as String,
             confirmLabel = "Сохранить", initial = initial as String, numeric = numeric as Boolean,
             onConfirm = { value ->
@@ -77,7 +79,7 @@ fun MinerScreen(
                 editing = null
             },
             onDismiss = { editing = null },
-        )
+        ) }
     }
 
     Column(
@@ -227,16 +229,6 @@ private fun formatHashes(h: Long): String = when {
     h >= 1_000_000_000L -> String.format("%.2f GH", h / 1e9)
     h >= 1_000_000L -> String.format("%.1f MH", h / 1e6)
     else -> String.format("%.0f kH", h / 1e3)
-}
-
-private fun plural(n: Int, one: String, few: String, many: String): String {
-    val n10 = n % 10
-    val n100 = n % 100
-    return when {
-        n10 == 1 && n100 != 11 -> one
-        n10 in 2..4 && n100 !in 12..14 -> few
-        else -> many
-    }
 }
 
 @Composable

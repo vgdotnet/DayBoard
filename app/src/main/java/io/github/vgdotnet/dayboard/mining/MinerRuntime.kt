@@ -42,6 +42,12 @@ object MinerRuntime {
     fun reset() {
         _state.value = MinerStatus()
     }
+
+    /** Incremented when the user stops the miner from the notification; the ViewModel turns the setting off. */
+    private val _stopRequests = MutableStateFlow(0)
+    val stopRequests: StateFlow<Int> = _stopRequests
+
+    fun requestStop() = _stopRequests.update { it + 1 }
 }
 
 fun formatHashrate(h: Double): String = when {

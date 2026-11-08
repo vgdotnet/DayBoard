@@ -150,6 +150,12 @@ class DashboardViewModel @JvmOverloads constructor(
             if (saved.settings.miner.enabled && !MinerRuntime.state.value.running) MinerController.start(getApplication(), saved.settings.miner)
         }
         viewModelScope.launch {
+            // A stop from the miner's notification (or a failed self-test) turns the setting off
+            MinerRuntime.stopRequests.collect { n ->
+                if (n > 0 && _state.value.settings.miner.enabled) updateSettings { it.copy(miner = it.miner.copy(enabled = false)) }
+            }
+        }
+        viewModelScope.launch {
             while (true) {
                 delay(1_000)
                 val t = ZonedDateTime.now(_state.value.home.zone)

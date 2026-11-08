@@ -26,6 +26,39 @@ class Job(
     /** Next 65536-nonce chunk to scan; workers take chunks from here. */
     val nextChunk = AtomicInteger(0)
 
+    // Native handle lifetime: freed once the job is retired and no worker is inside a scan on it.
+    private val inUse = AtomicInteger(0)
+    @Volatile private var retired = false
+    private var freed = false
+
+    /** Marks the start of a native scan; false means the job was retired and the caller must not scan. */
+    fun acquire(): Boolean {
+        inUse.incrementAndGet()
+        if (retired) {
+            release()
+            return false
+        }
+        return true
+    }
+
+    fun release() {
+        if (inUse.decrementAndGet() == 0 && retired) freeNative()
+    }
+
+    /** The job is replaced: the handle goes as soon as the last scan on it finishes. */
+    fun retire() {
+        retired = true
+        if (inUse.get() == 0) freeNative()
+    }
+
+    private fun freeNative() {
+        synchronized(this) {
+            if (freed || nativeHandle == 0L) return
+            freed = true
+        }
+        NativeKernel.release(nativeHandle)
+    }
+
     fun headerFor(version: Int, nonce: Int): ByteArray {
         val out = header.copyOf()
         out.putLe32(0, out.getLe32(0) xor versionBits[version])

@@ -37,7 +37,7 @@ class ImapMail {
         val store = session.getStore("imaps")
         store.connect(HOST, account, password)
         try {
-            val folder = store.getFolder(if (importantOnly) FOLDER_IMPORTANT else FOLDER_INBOX)
+            val folder = if (importantOnly) importantFolder(store) else store.getFolder(FOLDER_INBOX)
             folder.open(Folder.READ_ONLY)
             try {
                 val messages = folder.search(FlagTerm(Flags(Flags.Flag.SEEN), false))
@@ -51,6 +51,16 @@ class ImapMail {
         } finally {
             runCatching { store.close() }
         }
+    }
+
+    /** Gmail localizes system folder names, so the Important label is found by its \\Important attribute. */
+    private fun importantFolder(store: jakarta.mail.Store): Folder {
+        val byAttribute = runCatching {
+            store.defaultFolder.list("*").firstOrNull { f ->
+                (f as? org.eclipse.angus.mail.imap.IMAPFolder)?.attributes?.any { it.equals("\\Important", ignoreCase = true) } == true
+            }
+        }.getOrNull()
+        return byAttribute ?: store.getFolder(FOLDER_IMPORTANT)
     }
 
     private fun toItem(m: Message, account: String): InboxItem {

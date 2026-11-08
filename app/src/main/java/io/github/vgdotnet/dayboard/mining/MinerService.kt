@@ -21,7 +21,13 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import io.github.vgdotnet.dayboard.MainActivity
 import io.github.vgdotnet.dayboard.R
+import io.github.vgdotnet.dayboard.data.SettingsStore
 import io.github.vgdotnet.dayboard.model.MinerSettings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * Foreground service that owns the engine and the Stratum client, so mining goes on with the
@@ -38,6 +44,7 @@ class MinerService : Service() {
     private var settings = MinerSettings()
     private var charging = true
     private var ticks = 0
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val tick = object : Runnable {
         override fun run() {
@@ -79,12 +86,28 @@ class MinerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
+            // The user stopped the miner from the notification: the setting must follow, or the app would start it again
+            MinerRuntime.requestStop()
             stopSelf()
             return START_NOT_STICKY
         }
-        settings = MinerController.settings
         startAsForeground()
-        if (engine == null) startMining()
+        if (intent == null) {
+            // Restarted by the system after the process died: the controller's settings are gone, read the saved ones
+            scope.launch {
+                val saved = runCatching { SettingsStore(this@MinerService).load().settings.miner }.getOrNull()
+                if (saved == null || !saved.enabled) {
+                    stopSelf()
+                    return@launch
+                }
+                settings = saved
+                MinerController.settings = saved
+                if (engine == null) startMining()
+            }
+        } else {
+            settings = MinerController.settings
+            if (engine == null) startMining()
+        }
         return START_STICKY
     }
 
@@ -99,6 +122,8 @@ class MinerService : Service() {
         }
         if (!ok) {
             Log.e(TAG, "self-test failed, not mining")
+            MinerRuntime.requestStop()
+            stopSelf()
             return
         }
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -130,6 +155,7 @@ class MinerService : Service() {
     }
 
     override fun onDestroy() {
+        scope.cancel()
         handler.removeCallbacks(tick)
         runCatching { unregisterReceiver(battery) }
         stratum?.stop()

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -66,7 +67,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     var passwordFor by rememberSaveable { mutableStateOf<String?>(null) }
-    passwordFor?.let { account ->
+    passwordFor?.let { account -> key(account) {
         TextDialog(
             "Пароль приложения для $account",
             "16 символов из аккаунта Google",
@@ -74,7 +75,7 @@ fun SettingsScreen(
             onConfirm = { onSetMailPassword(account, it); passwordFor = null },
             onDismiss = { passwordFor = null },
         )
-    }
+    } }
     val c = DayBoard.colors
     var addingCity by rememberSaveable { mutableStateOf(false) }
     var addingAccount by rememberSaveable { mutableStateOf(false) }
