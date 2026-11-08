@@ -71,8 +71,40 @@ static int has_sha2(void) {
     return (getauxval(AT_HWCAP) & HWCAP_SHA2) != 0;
 }
 
+// Message schedule of a 16-word block with K already added: 16 vectors of 4 rounds each
+static inline void schedule16(uint32x4_t m0, uint32x4_t m1, uint32x4_t m2, uint32x4_t m3, uint32x4_t kw[16]) {
+    uint32x4_t w0 = m0, w1 = m1, w2 = m2, w3 = m3;
+    for (int t = 0; t < 16; t += 4) {
+        kw[t] = vaddq_u32(w0, vld1q_u32(K + 4 * t));
+        kw[t + 1] = vaddq_u32(w1, vld1q_u32(K + 4 * t + 4));
+        kw[t + 2] = vaddq_u32(w2, vld1q_u32(K + 4 * t + 8));
+        kw[t + 3] = vaddq_u32(w3, vld1q_u32(K + 4 * t + 12));
+        if (t < 12) {
+            w0 = vsha256su1q_u32(vsha256su0q_u32(w0, w1), w2, w3);
+            w1 = vsha256su1q_u32(vsha256su0q_u32(w1, w2), w3, w0);
+            w2 = vsha256su1q_u32(vsha256su0q_u32(w2, w3), w0, w1);
+            w3 = vsha256su1q_u32(vsha256su0q_u32(w3, w0), w1, w2);
+        }
+    }
+}
+
+// 64 rounds from a ready schedule
+static inline void rounds1(uint32x4_t *st0, uint32x4_t *st1, const uint32x4_t kw[16]) {
+    uint32x4_t s0 = *st0, s1 = *st1;
+    for (int t = 0; t < 16; ++t) {
+        uint32x4_t tmp = s0;
+        s0 = vsha256hq_u32(s0, s1, kw[t]);
+        s1 = vsha256h2q_u32(s1, tmp, kw[t]);
+    }
+    *st0 = vaddq_u32(*st0, s0);
+    *st1 = vaddq_u32(*st1, s1);
+}
+
 // Scans count W3 words from startW (nonce = bswap32(word)) for every version; writes candidates
 // (word, version) pairs into out, at most max pairs. Returns the number of candidates.
+// The schedule of the second header block depends only on the nonce and is built once per nonce
+// for all versions. (Interleaving two hash chains was measured slower on the A53: two schedules
+// take all 32 NEON registers and spill.)
 static int scan_range(const NativeJob *job, uint32_t startW, uint32_t count, uint32_t *out, int max) {
     int found = 0;
     const uint32x4_t pad1 = {0x80000000u, 0, 0, 0};
@@ -81,15 +113,18 @@ static int scan_range(const NativeJob *job, uint32_t startW, uint32_t count, uin
     const uint32x4_t xpad2 = {0x80000000u, 0, 0, 0};
     const uint32x4_t xpad3 = {0, 0, 0, 256};
     const uint32x4_t iv0 = vld1q_u32(IV), iv1 = vld1q_u32(IV + 4);
+    uint32x4_t kw[16], kx[16];
     for (uint32_t i = 0; i < count; ++i) {
         const uint32_t w3 = startW + i;
         const uint32x4_t m0 = {job->w0, job->w1, job->w2, w3};
+        schedule16(m0, pad1, zero, pad3, kw);
         for (int v = 0; v < job->versions; ++v) {
             uint32x4_t s0 = job->mid0[v], s1 = job->mid1[v];
-            compress_block(&s0, &s1, m0, pad1, zero, pad3);
+            rounds1(&s0, &s1, kw);
             // Second hash: the digest (s0, s1) as message, then padding
+            schedule16(s0, s1, xpad2, xpad3, kx);
             uint32x4_t h0 = iv0, h1 = iv1;
-            compress_block(&h0, &h1, s0, s1, xpad2, xpad3);
+            rounds1(&h0, &h1, kx);
             const uint32_t h7 = vgetq_lane_u32(h1, 3);
             if ((h7 & 0xffff) == 0) {
                 if (found < max) {
