@@ -36,6 +36,7 @@ import io.github.vgdotnet.dayboard.data.City
 import io.github.vgdotnet.dayboard.model.AppSettings
 import io.github.vgdotnet.dayboard.model.ZoneClock
 import io.github.vgdotnet.dayboard.ui.components.Card
+import io.github.vgdotnet.dayboard.ui.components.TextDialog
 import io.github.vgdotnet.dayboard.ui.theme.DayBoard
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -59,8 +60,21 @@ fun SettingsScreen(
     onGrantGmail: () -> Unit,
     onAddGmailAccount: (String) -> Unit,
     onRemoveGmailAccount: (String) -> Unit,
+    imapAccounts: Set<String> = emptySet(),
+    imapErrors: Map<String, String> = emptyMap(),
+    onSetMailPassword: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
+    var passwordFor by rememberSaveable { mutableStateOf<String?>(null) }
+    passwordFor?.let { account ->
+        TextDialog(
+            "Пароль приложения для $account",
+            "16 символов из аккаунта Google",
+            confirmLabel = "Сохранить",
+            onConfirm = { onSetMailPassword(account, it); passwordFor = null },
+            onDismiss = { passwordFor = null },
+        )
+    }
     val c = DayBoard.colors
     var addingCity by rememberSaveable { mutableStateOf(false) }
     var addingAccount by rememberSaveable { mutableStateOf(false) }
@@ -120,7 +134,24 @@ fun SettingsScreen(
             settings.gmailAccounts.sorted().forEach { account ->
                 Divider()
                 SettingsRow {
-                    Text(account, fontSize = 15.sp, color = c.text, modifier = Modifier.weight(1f).padding(start = 12.dp), maxLines = 1)
+                    Column(Modifier.weight(1f).padding(start = 12.dp).clickable { passwordFor = account }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(account, fontSize = 15.sp, color = c.text, maxLines = 1)
+                        val error = imapErrors[account]
+                        Text(
+                            when {
+                                error != null -> "IMAP: $error"
+                                account in imapAccounts -> "IMAP: пароль приложения задан, письма читаются"
+                                else -> "нажмите, чтобы задать пароль приложения для списка писем"
+                            },
+                            fontSize = 12.sp,
+                            color = when {
+                                error != null -> c.eventNowLine
+                                account in imapAccounts -> c.success
+                                else -> c.accentText
+                            },
+                            maxLines = 2,
+                        )
+                    }
                     Icon(
                         painterResource(R.drawable.ic_close),
                         contentDescription = "Убрать $account",
@@ -228,38 +259,6 @@ private fun SettingsRow(content: @Composable androidx.compose.foundation.layout.
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
-    )
-}
-
-/** One-line text input with OK / cancel. */
-@Composable
-private fun TextDialog(title: String, placeholder: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
-    val c = DayBoard.colors
-    var value by rememberSaveable { mutableStateOf("") }
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = c.card,
-        titleContentColor = c.text,
-        textContentColor = c.text,
-        title = { Text(title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
-        text = {
-            androidx.compose.material3.OutlinedTextField(
-                value = value,
-                onValueChange = { value = it },
-                placeholder = { Text(placeholder, color = c.textTertiary) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = c.accent,
-                    unfocusedBorderColor = c.cardInset,
-                    focusedTextColor = c.text,
-                    unfocusedTextColor = c.text,
-                    cursorColor = c.accent,
-                ),
-            )
-        },
-        confirmButton = { androidx.compose.material3.TextButton(onClick = { onConfirm(value) }) { Text("Добавить", color = c.accentText) } },
-        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Отмена", color = c.accentText) } },
     )
 }
 

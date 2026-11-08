@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.github.vgdotnet.dayboard.model.AppSettings
+import io.github.vgdotnet.dayboard.model.MinerSettings
 import io.github.vgdotnet.dayboard.model.ZoneClock
 import java.time.LocalTime
 import java.time.ZoneId
@@ -44,6 +46,17 @@ class SettingsStore(context: Context) {
             workHoursCollapsed = p[WORK_HOURS_COLLAPSED] ?: defaults.workHoursCollapsed,
             gmailImportantOnly = p[GMAIL_IMPORTANT] ?: defaults.gmailImportantOnly,
             gmailAccounts = p[GMAIL_ACCOUNTS] ?: defaults.gmailAccounts,
+            miner = MinerSettings(
+                enabled = p[MINER_ENABLED] ?: defaults.miner.enabled,
+                host = p[MINER_HOST] ?: defaults.miner.host,
+                port = p[MINER_PORT] ?: defaults.miner.port,
+                wallet = p[MINER_WALLET] ?: defaults.miner.wallet,
+                worker = p[MINER_WORKER] ?: defaults.miner.worker,
+                password = p[MINER_PASSWORD] ?: defaults.miner.password,
+                suggestDifficulty = p[MINER_DIFF] ?: defaults.miner.suggestDifficulty,
+                threads = p[MINER_THREADS] ?: defaults.miner.threads,
+                onlyWhenCharging = p[MINER_CHARGING] ?: defaults.miner.onlyWhenCharging,
+            ),
         )
         return Persisted(zones, settings)
     }
@@ -62,6 +75,15 @@ class SettingsStore(context: Context) {
             p[WORK_HOURS_COLLAPSED] = settings.workHoursCollapsed
             p[GMAIL_IMPORTANT] = settings.gmailImportantOnly
             p[GMAIL_ACCOUNTS] = settings.gmailAccounts
+            p[MINER_ENABLED] = settings.miner.enabled
+            p[MINER_HOST] = settings.miner.host
+            p[MINER_PORT] = settings.miner.port
+            p[MINER_WALLET] = settings.miner.wallet
+            p[MINER_WORKER] = settings.miner.worker
+            p[MINER_PASSWORD] = settings.miner.password
+            p[MINER_DIFF] = settings.miner.suggestDifficulty
+            p[MINER_THREADS] = settings.miner.threads
+            p[MINER_CHARGING] = settings.miner.onlyWhenCharging
         }
     }
 
@@ -99,5 +121,14 @@ class SettingsStore(context: Context) {
         val WORK_HOURS_COLLAPSED = booleanPreferencesKey("work_hours_collapsed")
         val GMAIL_IMPORTANT = booleanPreferencesKey("gmail_important_only")
         val GMAIL_ACCOUNTS = stringSetPreferencesKey("gmail_accounts")
+        val MINER_ENABLED = booleanPreferencesKey("miner_enabled")
+        val MINER_HOST = stringPreferencesKey("miner_host")
+        val MINER_PORT = intPreferencesKey("miner_port")
+        val MINER_WALLET = stringPreferencesKey("miner_wallet")
+        val MINER_WORKER = stringPreferencesKey("miner_worker")
+        val MINER_PASSWORD = stringPreferencesKey("miner_password")
+        val MINER_DIFF = doublePreferencesKey("miner_suggest_difficulty")
+        val MINER_THREADS = intPreferencesKey("miner_threads")
+        val MINER_CHARGING = booleanPreferencesKey("miner_only_when_charging")
     }
 }

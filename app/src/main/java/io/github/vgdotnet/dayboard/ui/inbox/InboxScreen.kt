@@ -102,7 +102,7 @@ fun InboxList(
 ) {
     val c = DayBoard.colors
     var filter by rememberSaveable { mutableIntStateOf(0) }
-    val all = state.inbox.sortedByDescending { it.time }
+    val all = state.feed
     val mail = all.filter { it.source == InboxSource.GMAIL }
     val slack = all.filter { it.source == InboxSource.SLACK }
     val shown = when (filter) { 1 -> mail; 2 -> slack; else -> all }

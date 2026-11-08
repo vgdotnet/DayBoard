@@ -112,4 +112,19 @@ data class AppSettings(
     val gmailImportantOnly: Boolean = false,
     /** Gmail accounts seen in notifications; the label provider is queried per account. */
     val gmailAccounts: Set<String> = emptySet(),
+    val miner: MinerSettings = MinerSettings(),
+)
+
+/** Solo mining on a Stratum pool; defaults match the ESP32 miner (public-pool.io, the same wallet). */
+data class MinerSettings(
+    val enabled: Boolean = false,
+    val host: String = "public-pool.io",
+    val port: Int = 21496,
+    val wallet: String = "bc1qhve4ahh4smm3haa2mt4p0zr35gda2hd95wdzt3",
+    val worker: String = "tab",
+    val password: String = "x",
+    /** Share threshold asked from the pool; public-pool.io does not go below 1. */
+    val suggestDifficulty: Double = 0.005,
+    val threads: Int = Runtime.getRuntime().availableProcessors(),
+    val onlyWhenCharging: Boolean = true,
 )

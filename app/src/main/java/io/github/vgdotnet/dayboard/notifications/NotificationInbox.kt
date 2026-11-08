@@ -4,6 +4,7 @@ import android.app.ActivityOptions
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
@@ -108,8 +109,17 @@ object NotificationInbox {
         } ?: false
         Log.d(TAG, "open ${item.id}: intent=${intent != null} sent=$sent")
         if (!sent) {
-            val launch = context.packageManager.getLaunchIntentForPackage(item.source.packageName)
-            if (launch != null) context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            // No notification intent (IMAP mail): the message link, which Gmail handles, else the app itself.
+            val link = item.openUrl.takeIf { it.startsWith("http") && it != item.source.openUrl }
+            val launch = link?.let { Intent(Intent.ACTION_VIEW, Uri.parse(it)).setPackage(item.source.packageName) }
+                ?: context.packageManager.getLaunchIntentForPackage(item.source.packageName)
+            if (launch != null) {
+                runCatching { context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    .onFailure {
+                        val plain = link?.let { Intent(Intent.ACTION_VIEW, Uri.parse(it)) }
+                        if (plain != null) runCatching { context.startActivity(plain.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    }
+            }
         }
     }
 
